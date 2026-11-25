@@ -138,3 +138,59 @@ def test_not_an_slx(tmp_path: Path) -> None:
     bad.write_text('Model { Name "x" }')
     with pytest.raises(NervusError, match=r"not an \.slx file"):
         read_slx(bad)
+
+
+def _archive(tmp_path: Path, systems: dict[str, str]) -> Path:
+    path = tmp_path / "model.slx"
+    with zipfile.ZipFile(path, "w") as z:
+        for name, xml in systems.items():
+            z.writestr(f"simulink/systems/{name}.xml", xml)
+    return path
+
+
+@pytest.mark.parametrize(("systems", "message"), [
+    ({"system_root": "<System><Block BlockType='Gain' Name='g' SID='1'>"}, "cannot read"),
+    ({"system_root": "<System><Block BlockType='SubSystem' Name='s' SID='1'><System Ref='system_1'/></Block></System>",
+      "system_1": "<System><Block BlockType='SubSystem' Name='t' SID='2'><System Ref='system_1'/></Block></System>"},
+     "contains itself"),
+    ({"system_root": "<System><Block BlockType='Inport' Name='u' SID='1'><P Name='Port'>[1]</P></Block></System>"},
+     "port number"),
+])  # fmt: skip
+def test_damaged_slx_files(systems: dict[str, str], message: str, tmp_path: Path) -> None:
+    """Regression: bad XML, a subsystem that contains itself and a bad port number raised ParseError,
+    RecursionError and ValueError."""
+    from nervus.core.errors import NervusError
+
+    with pytest.raises(NervusError, match=message):
+        read_slx(_archive(tmp_path, systems))
+
+
+def test_same_subsystem_contents_twice(tmp_path: Path) -> None:
+    """Two subsystems may refer to the same system file (only a system inside itself is refused)."""
+    sub = "<Block BlockType='SubSystem' Name='{}' SID='{}'><System Ref='system_9'/></Block>"
+    root = f"<System>{sub.format('a', 1)}{sub.format('b', 2)}</System>"
+    d = read_slx(_archive(tmp_path, {"system_root": root, "system_9": "<System/>"}))
+    assert {b.name for b in d.blocks} == {"a", "b"}
+
+
+def test_ranges_keep_their_digits() -> None:
+    assert matlab_expr("10000:0.25:10001") == "10000 10000.25 10000.5 10000.75 10001"
+    assert matlab_expr("1000000:1:1000002") == "1000000 1000001 1000002"
+    assert matlab_expr("0:0.1:0.3") == "0 0.1 0.2 0.3"
+
+
+def test_settings_that_are_not_imported_are_reported(tmp_path: Path) -> None:
+    root = """<System>
+      <Block BlockType="DiscreteIntegrator" Name="acc" SID="1">
+        <P Name="IntegratorMethod">Accumulation: Forward Euler</P><P Name="LimitOutput">on</P>
+      </Block>
+      <Block BlockType="Lookup_n-D" Name="map" SID="2"><P Name="NumberOfTableDimensions">1</P></Block>
+      <Block BlockType="Lookup_n-D" Name="clipped" SID="3">
+        <P Name="NumberOfTableDimensions">1</P><P Name="ExtrapMethod">Clip</P>
+      </Block>
+    </System>"""
+    report = read_slx(_archive(tmp_path, {"system_root": root})).meta["simulink_report"]
+    assert "acc: integrator method 'Accumulation: Forward Euler' not imported" in report
+    assert "acc: output limits not imported" in report
+    assert "map: extrapolation '(Simulink default)' not imported" in report
+    assert "clipped:" not in report

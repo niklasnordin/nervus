@@ -33,7 +33,7 @@ import struct
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 
 CONNECT, DISCONNECT, GET_STATUS, SET_MTA, UPLOAD, SHORT_UPLOAD, DOWNLOAD, SHORT_DOWNLOAD = (
     0xFF, 0xFE, 0xFD, 0xF6, 0xF5, 0xF4, 0xF0, 0xED,
@@ -249,6 +249,9 @@ class XcpMaster:
         self.transport = transport
         self.timeout = timeout
         self.objects = read_a2l(a2l) if isinstance(a2l, str | Path) else dict(a2l or {})
+        self.byte_order: Literal["little", "big"] = "little"
+        """The slave's byte order (BYTE_ORDER in the CONNECT answer): addresses in commands and multi-byte values
+        are sent in it."""
 
     def _cmd(self, frame: bytes) -> bytes:
         answer = self.transport.request(bytes(frame), self.timeout)
@@ -261,14 +264,18 @@ class XcpMaster:
 
     def connect(self) -> dict[str, int]:
         a = self._cmd(bytes([CONNECT, 0]))
-        return {"resources": a[1], "comm_mode": a[2], "max_cto": a[3], "max_dto": a[4] | a[5] << 8}
+        if len(a) < 6:
+            raise XcpError(f"CONNECT: answer too short ({len(a)} bytes)")
+        self.byte_order = "big" if a[2] & 0x01 else "little"  # COMM_MODE_BASIC bit 0: BYTE_ORDER (1 = Motorola)
+        max_dto = int.from_bytes(a[4:6], self.byte_order)
+        return {"resources": a[1], "comm_mode": a[2], "max_cto": a[3], "max_dto": max_dto}
 
     def disconnect(self) -> None:
         self._cmd(bytes([DISCONNECT]))
 
     def upload(self, address: int, n: int) -> bytes:
         """Read ``n`` bytes from ``address`` (in pieces of up to 7 bytes)."""
-        self._cmd(bytes([SET_MTA, 0, 0, 0]) + address.to_bytes(4, "little"))
+        self._cmd(bytes([SET_MTA, 0, 0, 0]) + address.to_bytes(4, self.byte_order))
         out = b""
         while len(out) < n:
             k = min(MAX_CTO - 1, n - len(out))
@@ -277,15 +284,19 @@ class XcpMaster:
 
     def download(self, address: int, data: bytes) -> None:
         """Write ``data`` at ``address`` (in pieces of up to 6 bytes)."""
-        self._cmd(bytes([SET_MTA, 0, 0, 0]) + address.to_bytes(4, "little"))
+        self._cmd(bytes([SET_MTA, 0, 0, 0]) + address.to_bytes(4, self.byte_order))
         for k in range(0, len(data), MAX_CTO - 2):
             piece = data[k : k + MAX_CTO - 2]
             self._cmd(bytes([DOWNLOAD, len(piece)]) + piece)
 
+    def _format(self, datatype: str) -> str:
+        """The struct format of an A2L data type in the slave's byte order."""
+        return (">" if self.byte_order == "big" else "<") + _FORMATS[datatype][1:]
+
     def read(self, name: str) -> float | list[float]:
         """The value of a measurement or characteristic from the A2L file."""
         obj = self.objects[name]
-        fmt = _FORMATS[obj.datatype]
+        fmt = self._format(obj.datatype)
         raw = self.upload(obj.address, obj.size)
         values = [v[0] for v in struct.iter_unpack(fmt, raw)]
         return values[0] if obj.count == 1 else values
@@ -294,7 +305,7 @@ class XcpMaster:
         """Calibrate: write a characteristic (scalar or array)."""
         obj = self.objects[name]
         values = value if isinstance(value, list) else [value]
-        fmt = _FORMATS[obj.datatype]
+        fmt = self._format(obj.datatype)
         if fmt[-1] not in "fd":
             values = [round(v) for v in values]
         self.download(obj.address, b"".join(struct.pack(fmt, v) for v in values))

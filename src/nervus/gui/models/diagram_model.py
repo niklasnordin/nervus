@@ -7,6 +7,7 @@ All edits from the GUI go through this class, so it can tell the views what chan
 from __future__ import annotations
 
 import contextlib
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -40,6 +41,7 @@ class DiagramModel(QObject):
     diagramReset = Signal()  # a whole new diagram was loaded
     currentChanged = Signal(object)  # Diagram: the editor now shows this (sub)system
     filePathChanged = Signal(object)  # Path | None
+    nameChanged = Signal(str)  # the model's name
     changed = Signal()  # any structural or parameter change
 
     def __init__(self, diagram: Diagram | None = None, parent: QObject | None = None) -> None:
@@ -120,21 +122,29 @@ class DiagramModel(QObject):
         self._path = path
         self.filePathChanged.emit(path)
 
+    def set_name(self, name: str) -> None:
+        """Rename the model (not undoable: done when an untitled model is first saved, from its file name)."""
+        if name != self._root.name:
+            self._root.name = name
+            self.nameChanged.emit(name)
+
     @property
     def title(self) -> str:
         return self._path.name if self._path else f"{self._root.name}"
+
+    width_of: Callable[[Block], float] | None = None
+    """The drawn width of a block, for placing blocks that have no position yet. The canvas (a view) sets it, so
+    this model does not depend on how blocks are drawn; without a canvas, a default width is used."""
 
     keeping_history = False
     """True while :meth:`set_diagram` replaces the model as part of an undoable edit (the undo history stays)."""
 
     def set_diagram(self, diagram: Diagram, path: Path | None = None, keep_history: bool = False) -> None:
-        from nervus.gui.controllers.editor_controller import block_width
-
-        auto_layout(diagram, width_of=block_width)  # diagrams built in Python have no positions yet
+        auto_layout(diagram, width_of=self.width_of)  # diagrams built in Python have no positions yet
         for _name, b in diagram.walk():
             system = getattr(b, "system", None)
             if isinstance(system, Diagram):
-                auto_layout(system, width_of=block_width)
+                auto_layout(system, width_of=self.width_of)
         self._root = diagram
         self._diagram = diagram
         self.keeping_history = keep_history
@@ -179,9 +189,13 @@ class DiagramModel(QObject):
         return link
 
     def restore_link(self, link: Link) -> Link:
-        new = self.add_link(link.a, link.a_port, link.b, link.b_port)
-        new.meta.update(link.meta)
-        return new
+        """Put back a removed link as the same object, so undo commands that hold it stay valid."""
+        d = link.a.diagram
+        assert d is not None
+        self._focus(d)
+        d.relink(link)
+        self.linkAdded.emit(link)
+        return link
 
     def remove_link(self, link: Link) -> None:
         d = link.a.diagram
@@ -231,7 +245,14 @@ class DiagramModel(QObject):
         return conn
 
     def restore_connection(self, conn: Connection) -> Connection:
-        return self.add_connection(conn.src, conn.src_port, conn.dst, conn.dst_port)
+        """Put back a removed connection as the same object, with its wire corners, so undo commands that hold
+        it stay valid."""
+        d = conn.dst.diagram
+        assert d is not None
+        self._focus(d)
+        d.reconnect(conn)
+        self.connectionAdded.emit(conn)
+        return conn
 
     def remove_connection(self, conn: Connection) -> None:
         d = conn.dst.diagram
@@ -295,6 +316,45 @@ class DiagramModel(QObject):
                         b.resolve(ns)
                 self.paramsChanged.emit(b)
         self.workspaceChanged.emit()
+
+    def set_meta(self, block: Block, changes: dict[str, Any]) -> None:
+        """Change drawing-only entries of ``block.meta`` (orientation, size, flipped, signal names, ...); ``None``
+        or ``False`` removes the key."""
+        for k, v in changes.items():
+            if v is None or v is False:
+                block.meta.pop(k, None)
+            else:
+                block.meta[k] = v
+        self.paramsChanged.emit(block)
+
+    def set_mask(self, subsystem: Block, variables: list[dict[str, Any]], icon: str, description: str) -> None:
+        """Replace a subsystem's mask (its parameters, icon text and description)."""
+        from nervus.core.workspace import Workspace
+
+        sub: Any = subsystem
+        sub.mask = Workspace.from_list(list(variables))
+        sub.mask_icon = str(icon)
+        sub.mask_description = str(description)
+        self.mask_changed(subsystem)
+
+    def set_variants(self, subsystem: Block, variants: dict[str, Any], active: str, system: Diagram) -> None:
+        """Replace a subsystem's variants and choose the active one (no variants: ``system`` is its diagram)."""
+        sub: Any = subsystem
+        sub.variants = dict(variants)
+        if sub.variants:
+            for v in sub.variants.values():
+                v.system.parent = sub
+            sub.activate(active)
+        else:
+            sub.active_variant = ""
+            sub.system = system
+            sub.system.parent = sub
+        self.variants_changed(subsystem)
+
+    def set_library_link(self, subsystem: Block, link: Any) -> None:
+        """Link a subsystem to a library component (a :class:`nervus.library.LibraryLink`), or unlink it (None)."""
+        subsystem.library_link = link  # type: ignore[attr-defined]
+        self.paramsChanged.emit(subsystem)
 
     def mask_changed(self, subsystem: Block) -> None:
         """A subsystem's mask changed: re-resolve parameters inside it and refresh the views."""

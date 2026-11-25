@@ -89,3 +89,12 @@ def test_migration_hook(first_order: Diagram, monkeypatch: pytest.MonkeyPatch) -
 
     monkeypatch.setitem(model_file.MIGRATIONS, 0, v0_to_v1)
     assert model_file.from_dict(data).name == "first_order"
+
+
+@pytest.mark.parametrize("content", [b'{"format": "nervus-model", "schema_version": 4, "name": "x"', b"{\xff\xfe"])
+def test_damaged_file_is_a_model_error(content: bytes, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """Regression: a truncated (or binary) model file raised JSONDecodeError / UnicodeDecodeError from load()."""
+    path = tmp_path / "damaged.nervus"
+    path.write_bytes(content)
+    with pytest.raises(ModelError):
+        load(path)

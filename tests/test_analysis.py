@@ -154,3 +154,35 @@ def test_tune_pid_meets_the_margins() -> None:
     assert pid.crossover > pi.crossover  # the derivative's phase lead allows a faster loop
     with pytest.raises(ValueError, match="phase margin"):
         tune_pid(g, "PI", phase_margin=170.0)  # a PI always lags 14° at crossover
+
+
+@pytest.mark.parametrize(
+    ("num", "den", "pm", "gm_db"),
+    [
+        ([1.0, 2.0], [1.0, 1.0, 0.0, 0.0], -19.27, np.inf),  # (s+2)/(s²(s+1)): unstable, phase below -180°
+        ([1.0, 2.0, 1.0], [1.0, 0.0, 0.0, 0.0], 21.39, -6.02),  # (s+1)²/s³: conditionally stable
+        ([-2.0], [1.0, 1.0], -60.0, np.inf),  # negative gain: closed-loop pole at +1
+        ([10.0], [0.1, 1.1, 1.0, 0.0], 1.58, 0.83),  # 10/(s(s+1)(0.1s+1)): unchanged, as in docs/analysis.md
+    ],
+)
+def test_margins_with_poles_at_the_origin_and_negative_gain(num, den, pm, gm_db) -> None:  # type: ignore[no-untyped-def]
+    # The phase used to start on np.angle's branch (+180° for a double integrator), which gave margins of 300°+.
+    from nervus.analysis import tf_margins
+
+    m = tf_margins(np.array(num), np.array(den))
+    assert m.phase_margin_deg == pytest.approx(pm, abs=0.02)
+    assert -180.0 < m.phase_margin_deg <= 180.0
+    if np.isfinite(gm_db):
+        assert m.gain_margin_db == pytest.approx(gm_db, abs=0.02)
+    else:
+        assert m.gain_margin_db == np.inf
+
+
+def test_bode_phase_of_a_double_integrator_starts_at_minus_180() -> None:
+    from scipy import signal as sps
+
+    from nervus.analysis import LinearModel
+
+    a, b, c, d = sps.tf2ss([1.0], [1.0, 1.0, 0.0, 0.0])  # 1/(s²(s+1))
+    _w, _mag, phase = LinearModel(a, b, c, d, ["u"], ["y"]).bode(np.array([1e-3, 1.0, 100.0]))
+    np.testing.assert_allclose(phase, [-180.06, -225.0, -269.43], atol=0.01)

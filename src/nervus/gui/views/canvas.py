@@ -34,6 +34,7 @@ from nervus.gui.views.items import (
     PhysicalPortItem,
     PortItem,
     WireItem,
+    block_width,
     domain_color,
     route,
     snap,
@@ -59,6 +60,7 @@ class DiagramScene(QGraphicsScene):
         super().__init__(parent)
         self.model = model
         self.controller = controller
+        model.width_of = block_width  # the model places new blocks with the widths they are drawn with
         self.blocks: dict[int, BlockItem] = {}
         self.wires: dict[int, WireItem] = {}
         self.links: dict[int, LinkItem] = {}
@@ -358,7 +360,7 @@ class DiagramScene(QGraphicsScene):
         if self._resizing is not None:
             item = self._resizing[0]
             corner = item.mapFromScene(event.scenePos())
-            item.block.meta["size"] = [snap(max(corner.x(), 10.0)), snap(max(corner.y(), 10.0))]
+            item.preview_size = [snap(max(corner.x(), 10.0)), snap(max(corner.y(), 10.0))]
             item.refresh()
             self._update_wires_of(item)
             event.accept()
@@ -395,9 +397,7 @@ class DiagramScene(QGraphicsScene):
             item, old = self._resizing
             self._resizing = None
             new = [item.size[0], item.size[1]]
-            item.block.meta.pop("size", None)
-            if old is not None:
-                item.block.meta["size"] = old
+            item.preview_size = None  # the model keeps the old size unless the controller accepts the new one
             self.controller.resize_block(item.block, old, new)
             item.refresh()
             self._update_wires_of(item)

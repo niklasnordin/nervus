@@ -22,7 +22,8 @@ A chart is written in a short text language::
     transition running -> off: key < 0.5 or rpm < 300
 
 ``param NAME, ...`` declares read-only calibration parameters whose values come from the model workspace
-(or a mask). The first state is the initial one (or write ``initial NAME``). Every sample period the chart:
+(or a mask). The first state is the initial one (or write ``initial NAME``). It is entered in the first sample,
+so its ``entry`` actions see the inputs of that sample. Every sample period (the first one too) the chart:
 
 1. checks the transitions leaving the active state, **in the order they are written**. The first whose guard
    is true fires: the source's ``exit`` actions run, then the transition's action (after ``/``), then the
@@ -396,6 +397,15 @@ def _ancestry(states: list[ChartState], k: int) -> list[int]:
     return out
 
 
+def transition_scope(spec: ChartSpec, t: ChartTransition) -> int | None:
+    """The innermost state that contains both ends of ``t`` and is left neither way (``None``: the chart itself).
+
+    Everything below it on the source side is exited, on the target side entered. A self-transition, and a
+    transition to an enclosing state, leave that state and enter it again (its exit and entry actions run)."""
+    anc_s, anc_d = spec.ancestors(t.source), spec.ancestors(t.target)
+    return next((x for x in anc_s[1:] if x in anc_d[1:]), None)
+
+
 def _send_to_index(stmts: list[ast.stmt], events: list[str]) -> list[ast.stmt]:
     """``send(go)`` → ``send(<index of go>)`` (an event name is otherwise a 0/1 value)."""
     out = []
@@ -433,6 +443,9 @@ class _Interpreter:
             self.outgoing[t.source].append(k)
         self.fired: list[int] = []
         """Transitions that fired in the last step (for coverage)."""
+        self.period = 0.0
+        self.entered: set[int] = set()
+        """States entered in the current step (their clocks stay at 0)."""
 
     @staticmethod
     def _run(code: Any, env: dict[str, Any]) -> None:
@@ -440,7 +453,9 @@ class _Interpreter:
             exec(code, {"__builtins__": {}}, env)
 
     def _clock(self, k: int, env: dict[str, Any], period: float) -> None:
-        elapsed = self.ticks[k] + 1  # periods since entry (one has passed at the first step after it)
+        # Periods since entry: one has passed at the first step after it, none in the step that entered it (the
+        # initial states are entered in the first step, and then processed in it).
+        elapsed = self.ticks[k] + (0 if k in self.entered else 1)
         env["t_in_state"] = elapsed * period
         env["after"] = lambda n: elapsed >= n
 
@@ -470,17 +485,17 @@ class _Interpreter:
                 if not st.parallel:
                     self.hist[k] = float(c)
                 self._exit(c, env)
+        self._clock(k, env, self.period)  # exit actions see the time in their own state (as in the C code)
         self._run(self.exit[k], env)
         self.active[k] = 0.0
 
     def _fire(self, k: int, env: dict[str, Any]) -> None:
         t = self.spec.transitions[k]
         anc_s, anc_d = self.spec.ancestors(t.source), self.spec.ancestors(t.target)
-        # The innermost state that contains both ends and is left neither way (a self-transition leaves and
-        # re-enters its state). Everything below it on the source side is exited, on the target side entered.
-        lca = next((x for x in anc_s[1:] if x in anc_d), None)
+        lca = transition_scope(self.spec, t)
         leave = anc_s[anc_s.index(lca) - 1] if lca is not None else anc_s[-1]
         self._exit(leave, env)
+        self._clock(t.source, env, self.period)  # the transition action sees the time in its source state
         self._run(self.actions[k], env)
         path = anc_d[: anc_d.index(lca)] if lca is not None else anc_d
         for x in reversed(path[1:]):  # down to the target: enter each level, and the other parallel regions
@@ -510,14 +525,19 @@ class _Interpreter:
 
     def step(self, active: Array, ticks: Array, hist: Array, env: dict[str, Any], period: float) -> None:
         """One sample: process the chart, then every broadcast event (in order), then advance the clocks.
-        Changes ``active``, ``ticks`` and ``hist`` in place."""
-        self.active, self.ticks, self.hist = active, ticks, hist
-        self.entered: set[int] = set()
+        Changes ``active``, ``ticks`` and ``hist`` in place.
+
+        In the first sample (no state is active yet) the initial states are entered first, with the inputs of that
+        sample, and then processed like the rest of the chart."""
+        self.active, self.ticks, self.hist, self.period = active, ticks, hist, period
+        self.entered = set()
         self.fired = []
         queue: list[int] = []
         env["send"] = lambda e: queue.append(int(e)) if len(queue) < MAX_EVENT_PASSES else None
         for name in self.spec.events:
             env[name] = 0.0
+        if not any(active[k] for k in self.spec.top):
+            self._enter_default(self.spec.initial, env)
         event: int | None = None
         for _ in range(MAX_EVENT_PASSES + 1):
             if event is not None:
@@ -534,14 +554,6 @@ class _Interpreter:
         for k in range(len(active)):
             if active[k] and k not in self.entered:
                 ticks[k] += 1.0
-
-    def enter_initial(self, active: Array, ticks: Array, hist: Array, env: dict[str, Any]) -> None:
-        self.active, self.ticks, self.hist = active, ticks, hist
-        self.entered = set()
-        env["send"] = lambda e: None
-        for name in self.spec.events:
-            env[name] = 0.0
-        self._enter_default(self.spec.initial, env)
 
 
 @register
@@ -574,7 +586,8 @@ class StateChart(Block):
     last output gives the active state's number (0, 1, ... in the order the states are written). Every sample
     period the transitions leaving the active state are checked in the order written; the first true guard
     fires (exit → transition action → entry). Otherwise the state's *during* actions run. ``after(n)`` is true
-    after *n* periods in the state, and ``t_in_state`` is the time in the state in seconds.
+    after *n* periods in the state, and ``t_in_state`` is the time in the state in seconds. The initial state is
+    entered in the first sample (its entry actions see the inputs of that sample), and its clock starts there.
 
     The chart runs at a discrete rate, and can be generated as C code.
     """
@@ -639,16 +652,11 @@ class StateChart(Block):
         return env
 
     def initial_discrete_state(self) -> Array:
-        env: dict[str, Any] = dict(_FUNCS)
-        env.update(_CONSTS)
-        env.update({n: 0.0 for n in self.spec.inputs})
-        env.update(self._params())
-        for name, init in self.spec.outputs + self.spec.locals:
-            env[name] = init
+        """No state is active yet: the first sample enters the initial states, with the inputs of that sample."""
+        self._params()  # every chart parameter must be resolved
         n, _v0 = self._layout()
-        active, ticks, hist = np.zeros(n), np.zeros(n), np.full(n, -1.0)
-        self._interp.enter_initial(active, ticks, hist, env)
-        return np.array([*active, *ticks, *hist, *[float(env[v]) for v in self.spec.variables]])
+        values = [float(v) for _, v in self.spec.outputs + self.spec.locals]  # in the order of spec.variables
+        return np.array([*np.zeros(n), *np.zeros(n), *np.full(n, -1.0), *values])
 
     def _params(self) -> dict[str, float]:
         missing = [n for n in self.spec.params if n not in self.param_values]

@@ -37,12 +37,8 @@ def locate(x: Array, bp: Array, interpolation: str, extrapolation: str) -> tuple
     f = (x - bp[i]) / (bp[i + 1] - bp[i])
     if extrapolation == "clip":
         f = np.clip(f, 0.0, 1.0)
-    if interpolation == "nearest":
-        f = (
-            np.where(f >= 0.5, 1.0, 0.0)
-            if extrapolation == "clip"
-            else np.asarray(np.round(np.clip(f, 0.0, 1.0)), dtype=np.float64)
-        )
+    if interpolation == "nearest":  # a tie (exactly half way) goes to the upper point, in both extrapolation modes
+        f = np.where(np.clip(f, 0.0, 1.0) >= 0.5, 1.0, 0.0)
     elif interpolation == "flat":
         f = np.where(f >= 1.0, 1.0, 0.0) if extrapolation == "clip" else np.where(x >= bp[-1], 1.0, 0.0)
     return i, f

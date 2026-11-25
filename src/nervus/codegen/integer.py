@@ -129,16 +129,23 @@ def dyadic(value: float, where: str) -> tuple[int, int]:
                            "with e.g. data type fixdt(1, 16, 14)) or a value such as 0.75")  # fmt: skip
 
 
-def threshold(value: float, n: int, op: str) -> tuple[str, int]:
-    """The integer comparison equal to ``stored·2^-n op value`` for integer ``stored``: (operator, integer)."""
+def threshold(value: float, n: int, op: str) -> tuple[str, int] | bool:
+    """The integer comparison equal to ``stored·2^-n op value`` for integer ``stored``: (operator, integer), or
+    ``True``/``False`` when the result is the same for every stored integer (e.g. ``== 0.5`` on an integer, or a
+    comparison with ±inf)."""
     t = value * 2.0**n
+    if math.isnan(t):
+        return op == "!="  # NaN compares unequal to everything
+    if abs(t) > 2.0**62:  # beyond every stored integer (at most 32 bits, scaled into int64)
+        above = t > 0  # every stored value is below t
+        return {">": not above, ">=": not above, "<": above, "<=": above, "==": False, "!=": True}[op]
     if t == math.floor(t):
         return op, int(t)
     if op in (">", "<="):
         return op, math.floor(t)
     if op in (">=", "<"):
         return op, math.ceil(t)
-    return ("!=", 0) if op == "==" else ("==", 0)  # never equal / always different: compared against nothing
+    return op == "!="  # not representable: never equal, always different
 
 
 class Int:
@@ -371,7 +378,10 @@ def _relational(e: Emitter) -> BlockCode:
 def _compare_constant(e: Emitter) -> BlockCode:
     t = Int(e)
     k = t.k_in(0)
-    op, c = threshold(float(np.ravel(e.block.params["constant"])[0]), k, e.block.params["operator"])
+    cmp = threshold(float(np.ravel(e.block.params["constant"])[0]), k, e.block.params["operator"])
+    if isinstance(cmp, bool):  # the same result for every input value
+        return _bc(e.each(e.w(), lambda ix: [f"{e.y(0, ix)} = {'1u' if cmp else '0u'};"]))
+    op, c = cmp
     return _bc(e.each(e.w(), lambda ix: [f"{e.y(0, ix)} = ({t.u(0, ix)} {op} (int64_T){c}) ? 1u : 0u;"]))
 
 
@@ -405,19 +415,22 @@ def _switch(e: Emitter) -> BlockCode:
     t = Int(e)
     crit = e.block.params["criterion"]
     k_c = t.k_in(1)
+    k0, k2 = t.k_in(0), t.k_in(2)
     if crit == "u1 != 0":
 
         def cond(ix: str) -> str:
             return t.nonzero(1, ix)
     else:
-        op, c = threshold(
+        cmp = threshold(
             float(np.ravel(e.block.params["threshold"])[0]), k_c, ">" if ">" in crit and ">=" not in crit else ">="
         )
+        if isinstance(cmp, bool):  # e.g. a threshold of -inf: always the same input
+            port, k_sel = (0, k0) if cmp else (2, k2)
+            return _bc(e.each(e.w(), lambda ix: [f"{e.y(0, ix)} = {t.store(t.u(port, ix), k_sel)};"]))
+        op, c = cmp
 
         def cond(ix: str) -> str:
             return f"({t.u(1, ix)} {op} (int64_T){c})"
-
-    k0, k2 = t.k_in(0), t.k_in(2)
 
     def body(ix: str) -> list[str]:
         return [f"if {cond(ix)} {{", f"    {e.y(0, ix)} = {t.store(t.u(0, ix), k0)};", "} else {",
@@ -435,8 +448,16 @@ def _saturation(e: Emitter) -> BlockCode:
     rounding = e.block.quantization()[0]
     from nervus.core.datatypes import round_values
 
-    lo = int(round_values(np.array([float(np.ravel(e.block.params["lower"])[0]) * 2.0**k]), rounding)[0])
-    hi = int(round_values(np.array([float(np.ravel(e.block.params["upper"])[0]) * 2.0**k]), rounding)[0])
+    dt = t.in_types[0]
+    smin, smax = (0, 1) if dt.kind == "boolean" else (int(dt.stored_min), int(dt.stored_max))
+
+    def limit(pname: str) -> int:
+        # Clamped to the stored range first (rounding is monotonic, so this gives the same result), which also
+        # makes infinite limits finite.
+        v = float(np.ravel(e.block.params[pname])[0]) * 2.0**k
+        return int(round_values(np.array([min(max(v, float(smin)), float(smax))]), rounding)[0])
+
+    lo, hi = limit("lower"), limit("upper")
     t.helper("saturate")
     return _bc(e.each(e.w(), lambda ix: [f"{e.y(0, ix)} = ({t.out_types[0].c_type})nv_sat({t.u(0, ix)}, (int64_T){lo}, (int64_T){hi});"]))  # fmt: skip
 

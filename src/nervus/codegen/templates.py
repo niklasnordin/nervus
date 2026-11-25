@@ -748,16 +748,18 @@ _C_CMPS = {ast.Eq: "==", ast.NotEq: "!=", ast.Lt: "<", ast.LtE: "<=", ast.Gt: ">
 
 
 class _ChartC:
-    """Translates the (whitelisted) chart AST into C expressions and statements."""
+    """Translates the (whitelisted) chart AST into C expressions and statements, with the semantics of Python
+    (as the simulation runs them): ``%`` is a floored modulo, ``and``/``or`` give one of their operands."""
 
-    def __init__(self, names: dict[str, str], ticks: str, period: str, events: list[str] | None = None,
+    def __init__(self, names: dict[str, str], elapsed: str, period: str, events: list[str] | None = None,
                  max_events: int = 8) -> None:  # fmt: skip
-        self.names, self.ticks, self.period = names, ticks, period
+        self.names, self.elapsed, self.period = names, elapsed, period
+        """``elapsed``: C expression of the sample periods the state has been active (``after``, ``t_in_state``)."""
         self.events, self.max_events = list(events or []), max_events
 
-    def at(self, ticks: str) -> _ChartC:
+    def at(self, elapsed: str) -> _ChartC:
         """The same translator with another state's clock (``after`` and ``t_in_state``)."""
-        return _ChartC(self.names, ticks, self.period, self.events, self.max_events)
+        return _ChartC(self.names, elapsed, self.period, self.events, self.max_events)
 
     def expr(self, n: ast.AST) -> str:
         if isinstance(n, ast.Constant):
@@ -766,7 +768,7 @@ class _ChartC:
             return c_float(float(n.value))
         if isinstance(n, ast.Name):
             if n.id == "t_in_state":
-                return f"(({self.ticks} + 1.0) * {self.period})"
+                return f"({self.elapsed} * {self.period})"
             consts = {
                 "pi": "3.141592653589793",
                 "e": "2.718281828459045",
@@ -780,17 +782,23 @@ class _ChartC:
             a, b = self.expr(n.left), self.expr(n.right)
             if isinstance(n.op, ast.Pow):
                 return f"pow({a}, {b})"
-            if isinstance(n.op, ast.Mod):
-                return f"fmod({a}, {b})"
+            if isinstance(n.op, ast.Mod):  # floored like Python's: the sign of the divisor
+                r = f"fmod({a}, {b})"
+                return f"((({r} != 0.0) && ((({b}) < 0.0) != ({r} < 0.0))) ? ({r} + {b}) : {r})"
             return f"({a} {_C_BINOPS[type(n.op)]} {b})"
         if isinstance(n, ast.UnaryOp):
             v = self.expr(n.operand)
             return f"(!{v})" if isinstance(n.op, ast.Not) else f"(-{v})" if isinstance(n.op, ast.USub) else v
-        if isinstance(n, ast.BoolOp):
-            op = " && " if isinstance(n.op, ast.And) else " || "
-            return (
-                "(" + op.join(f"({self.expr(v)} != 0.0)" if not _is_bool(v) else self.expr(v) for v in n.values) + ")"
-            )
+        if isinstance(n, ast.BoolOp):  # Python's: the first operand that decides, as a value (2 or 3 is 2)
+            values = [self.expr(v) for v in n.values]
+            out = values[-1]
+            for v in reversed(values[:-1]):
+                out = (
+                    f"((({v}) != 0.0) ? {out} : {v})"
+                    if isinstance(n.op, ast.And)
+                    else f"((({v}) != 0.0) ? {v} : {out})"
+                )
+            return out
         if isinstance(n, ast.Compare):
             parts, left = [], n.left
             for cmp_op, right in zip(n.ops, n.comparators, strict=True):
@@ -801,7 +809,7 @@ class _ChartC:
             return f"(({self.expr(n.test)}) ? {self.expr(n.body)} : {self.expr(n.orelse)})"
         if isinstance(n, ast.Call) and isinstance(n.func, ast.Name):
             if n.func.id == "after":
-                return f"(({self.ticks} + 1.0) >= {self.expr(n.args[0])})"
+                return f"({self.elapsed} >= {self.expr(n.args[0])})"
             fn = _C_CALLS[n.func.id]
             args = [self.expr(a) for a in n.args]
             if fn in ("fmin", "fmax") and len(args) > 2:
@@ -837,7 +845,8 @@ class _ChartC:
 
 
 def _is_bool(n: ast.AST) -> bool:
-    return isinstance(n, ast.Compare | ast.BoolOp) or (isinstance(n, ast.UnaryOp) and isinstance(n.op, ast.Not))
+    """A C expression of type int (0/1). ``and``/``or`` are not: they give one of their operands."""
+    return isinstance(n, ast.Compare) or (isinstance(n, ast.UnaryOp) and isinstance(n.op, ast.Not))
 
 
 @template("charts.state_chart")
@@ -845,7 +854,7 @@ def _state_chart(e: Emitter) -> BlockCode:
     """The chart as C: the same algorithm as the simulation (``nervus.blocks.chart._Interpreter``), unrolled over
     the state tree. The state array holds the active flags, the ticks and the history of every state, then the
     variables."""
-    from nervus.blocks.chart import MAX_EVENT_PASSES
+    from nervus.blocks.chart import MAX_EVENT_PASSES, transition_scope
 
     blk = e.block
     spec = blk.spec  # type: ignore[attr-defined]
@@ -873,9 +882,13 @@ def _state_chart(e: Emitter) -> BlockCode:
     cg = _ChartC(names, "0.0", c_float(e.period), spec.events, MAX_EVENT_PASSES)
     states = spec.states
 
+    def clock(k: int) -> _ChartC:
+        """State k's clock: no period has passed in the sample that entered it (as ``_Interpreter._clock``)."""
+        return cg.at(f"({tck(k)} + (entered[{k}] ? 0.0 : 1.0))")
+
     def enter_one(k: int) -> list[str]:
         return [f"{act(k)} = 1.0; {tck(k)} = 0.0; entered[{k}] = 1; /* enter {states[k].name} */",
-                *cg.at("(-1.0)").stmts(states[k].entry)]  # fmt: skip
+                *cg.at("0.0").stmts(states[k].entry)]  # fmt: skip
 
     def enter_default(k: int) -> list[str]:
         out = enter_one(k)
@@ -899,14 +912,14 @@ def _state_chart(e: Emitter) -> BlockCode:
         for c in reversed(st.children):
             body = ([] if st.parallel else [f"{hst(k)} = {c}.0;"]) + exit_state(c)
             out += [f"if ({act(c)} != 0.0) {{", *[f"    {x}" for x in body], "}"]
-        return [*out, *cg.at(tck(k)).stmts(st.exit), f"{act(k)} = 0.0; /* exit {st.name} */"]
+        return [*out, *clock(k).stmts(st.exit), f"{act(k)} = 0.0; /* exit {st.name} */"]
 
     def fire(tk: int) -> list[str]:
         t = spec.transitions[tk]
         anc_s, anc_d = spec.ancestors(t.source), spec.ancestors(t.target)
-        lca = next((x for x in anc_s[1:] if x in anc_d), None)
+        lca = transition_scope(spec, t)
         leave = anc_s[anc_s.index(lca) - 1] if lca is not None else anc_s[-1]
-        out = exit_state(leave) + cg.at(tck(t.source)).stmts(t.action)
+        out = exit_state(leave) + clock(t.source).stmts(t.action)
         path = anc_d[: anc_d.index(lca)] if lca is not None else anc_d
         for x in reversed(path[1:]):
             out += [f"if ({act(x)} == 0.0) {{", *[f"    {y}" for y in enter_one(x)], "}"]
@@ -917,7 +930,7 @@ def _state_chart(e: Emitter) -> BlockCode:
         return out + enter_default(t.target)
 
     def process(k: int) -> list[str]:
-        here = cg.at(tck(k))
+        here = clock(k)
         body: list[str] = []
         outgoing = [tk for tk, t in enumerate(spec.transitions) if t.source == k]
         for m, tk in enumerate(outgoing):
@@ -938,14 +951,15 @@ def _state_chart(e: Emitter) -> BlockCode:
     body = [f"for (i = 0; i < {n}; i++) {{ act0[i] = {s}[i]; }}"]
     for k in spec.top:
         body += process(k)
-    lines = ["{", f"    real_T act0[{n}];", f"    int entered[{n}];", "    int i;",
-             f"    for (i = 0; i < {n}; i++) {{ entered[i] = 0; }}"]  # fmt: skip
+    # The first sample (no state active yet) enters the initial states, with its inputs, before processing.
+    none_active = " && ".join(f"({act(k)} == 0.0)" for k in spec.top)
+    start = [f"if ({none_active}) {{", *[f"    {x}" for x in enter_default(spec.initial)], "}"]
+    lines = ["{", f"    real_T act0[{n}];", f"    int entered[{n}];", "    int i;"]
+    if spec.events:
+        lines += [f"    int q[{MAX_EVENT_PASSES}];", "    int nq = 0;", "    int ev = -1;", "    int pass;"]
+    lines += [f"    for (i = 0; i < {n}; i++) {{ entered[i] = 0; }}", *[f"    {x}" for x in start]]
     if spec.events:  # one pass, then one more for each broadcast event
         lines += [
-            f"    int q[{MAX_EVENT_PASSES}];",
-            "    int nq = 0;",
-            "    int ev = -1;",
-            "    int pass;",
             f"    for (pass = 0; pass <= {MAX_EVENT_PASSES}; pass++) {{",
             *[f"        {x}" for x in body],
             "        if (nq == 0) { break; }",

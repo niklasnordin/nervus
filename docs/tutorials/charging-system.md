@@ -52,7 +52,7 @@ Without energy management the battery delivers **38 A** for the whole traffic ja
 from 0.75 to 0.71 and the voltage to 11.95 V. Repeat this on every trip in winter and the car will not start one
 morning.
 
-With energy management the chart raises the idle speed after 2.8 s and sheds the comfort loads at 7.8 s; from then on
+With energy management the chart raises the idle speed after 3.0 s and sheds the comfort loads at 8.0 s; from then on
 the alternator covers the remaining 45 A and the battery is in balance (0.03 Ah in the whole jam). When the car
 drives off, the alternator can deliver 96 A, the battery charges with 30 A, the loads come back on at once, and the
 battery ends the trip fuller than it started (0.78).

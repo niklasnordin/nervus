@@ -105,6 +105,24 @@ def test_t_in_state_and_locals() -> None:
     assert out["n"][-1] == 2
 
 
+def test_initial_state_is_entered_in_the_first_sample_with_its_inputs() -> None:
+    chart = """
+    input u
+    output y = 0, tis = -1
+    state a
+      entry: y = u
+      during: tis = t_in_state
+    state b
+      entry: y = 10 * u
+    transition a -> b: after(3)
+    """
+    out = run_chart(chart, {"u": [5, 5, 6, 6, 6, 6]}, ts=1.0)
+    # The entry action sees u at t = 0; the clock starts at the entry, like for a state entered later.
+    np.testing.assert_array_equal(out["y"], [5, 5, 5, 60, 60, 60])
+    np.testing.assert_array_equal(out["tis"][:3], [0, 1, 2])
+    np.testing.assert_array_equal(out["state"], [0, 0, 0, 1, 1, 1])
+
+
 def test_chart_ports_follow_definition() -> None:
     c = StateChart(definition=ENGINE)
     assert c.num_inputs() == 2 and c.num_outputs() == 3

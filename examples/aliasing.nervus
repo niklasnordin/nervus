@@ -1,0 +1,96 @@
+{
+  "format": "nervus-model",
+  "schema_version": 4,
+  "name": "aliasing",
+  "meta": {},
+  "settings": {
+    "t_start": 0.0,
+    "t_final": 0.6,
+    "solver": "auto",
+    "step": null,
+    "max_step": 0.0001,
+    "rtol": 1e-06,
+    "atol": 1e-08,
+    "zero_crossing": true
+  },
+  "workspace": [
+    {
+      "name": "f_signal",
+      "value": 45.0,
+      "description": "Frequency of the vibration",
+      "unit": "Hz"
+    },
+    {
+      "name": "T",
+      "value": 0.02,
+      "description": "Sample time of the ECU input",
+      "unit": "s"
+    }
+  ],
+  "blocks": [
+    {
+      "name": "vibration",
+      "type": "sources.sine",
+      "params": {
+        "amplitude": 1.0,
+        "frequency": "2 * pi * f_signal",
+        "phase": 0.0,
+        "bias": 0.0,
+        "sample_time": 0.0
+      },
+      "meta": {
+        "position": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "sampled",
+      "type": "discrete.zero_order_hold",
+      "params": {
+        "sample_time": "T"
+      },
+      "meta": {
+        "position": [
+          170.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "scope",
+      "type": "sinks.scope",
+      "params": {
+        "num_inputs": 2
+      },
+      "meta": {
+        "position": [
+          340.0,
+          0.0
+        ]
+      }
+    }
+  ],
+  "connections": [
+    {
+      "src": "vibration",
+      "src_port": 0,
+      "dst": "sampled",
+      "dst_port": 0
+    },
+    {
+      "src": "vibration",
+      "src_port": 0,
+      "dst": "scope",
+      "dst_port": 0
+    },
+    {
+      "src": "sampled",
+      "src_port": 0,
+      "dst": "scope",
+      "dst_port": 1
+    }
+  ],
+  "tests": []
+}

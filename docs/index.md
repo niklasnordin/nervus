@@ -24,7 +24,7 @@ Simulink. It is aimed at control engineering, and especially at engine and vehic
 | OBD-II | live data and trouble codes from a real car (ELM327 or CAN), and a simulated ECU to practise with | [OBD-II](obd.md) |
 | Testing | test cases stored with the model, **Signal Builder** (test signals drawn in an editor), Test Manager, Data Inspector, parameter sweeps and Monte Carlo runs, model coverage with MC/DC, **requirements traceability**, Model Advisor | [Testing](testing.md), [Verification](verification.md) |
 | Analysis | linearisation, trim, Bode, Nyquist, root locus, stability margins, step response, PID tuning | [Analysis](analysis.md) |
-| Learning | 33 tutorials in 7 topics, from your first model to ECU code, CAN and diagnostics, each with a finished example model | [Tutorials](tutorials/index.md) |
+| Learning | 35 tutorials in 7 topics, from your first model to ECU code, CAN and diagnostics, each with a finished example model | [Tutorials](tutorials/index.md) |
 
 ## Where to start
 

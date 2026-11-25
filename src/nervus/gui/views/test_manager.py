@@ -354,13 +354,7 @@ class TestManagerPanel(QWidget):
     # ------------------------------------------------------------------ editing
 
     def _unique(self, base: str) -> str:
-        names = {c.name for c in self.model.root.tests}
-        if base not in names:
-            return base
-        k = 2
-        while f"{base} {k}" in names:
-            k += 1
-        return f"{base} {k}"
+        return self.runner.unique_name(base)
 
     def edit_case(self, case: TestCase, is_new: bool) -> TestCase | None:
         dlg = TestCaseDialog(case, self._inports(), self)
@@ -436,33 +430,20 @@ class TestManagerPanel(QWidget):
     # ------------------------------------------------------------------ files
 
     def export_suite(self, path: str, names: list[str] | None = None) -> str:
-        from nervus.testing import save_suite
-
-        return str(save_suite(self._cases(names or None), path))
+        return str(self.runner.export_suite(path, self._cases(names or None)))
 
     def import_suite(self, path: str) -> int:
         """Add the test cases of a suite file; cases whose names exist get a unique name."""
         from nervus.core import NervusError
-        from nervus.testing import load_suite
 
         try:
-            new = load_suite(path)
+            return self.runner.import_suite(path)
         except NervusError as exc:
             self.statusMessage.emit(str(exc))
             return 0
-        tests = list(self.model.root.tests)
-        for case in new:
-            case.name = self._unique(case.name)
-            tests.append(case)
-        self.editor.set_tests(tests, f"Import {len(new)} test case{'s' if len(new) != 1 else ''}")
-        return len(new)
 
     def save_report(self, path: str) -> str:
-        from nervus.testing import save_html_report
-
-        results = [self.runner.results[c.name] for c in self.model.root.tests if c.name in self.runner.results]
-        title = f"Test report — {self.model.root.name or 'model'}"
-        return str(save_html_report(results, path, title, self.runner.coverage))
+        return str(self.runner.save_report(path))
 
     def _ask_export(self) -> None:
         from PySide6.QtWidgets import QFileDialog

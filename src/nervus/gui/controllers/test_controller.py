@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import threading
+from pathlib import Path
 
-from PySide6.QtCore import QObject, QThread, Signal, Slot
+from PySide6.QtCore import QObject, Qt, QThread, Signal, Slot
 
 from nervus.core.testcase import TestCase
 from nervus.coverage import Coverage
@@ -66,7 +67,7 @@ class TestController(QObject):
         thread.started.connect(worker.run)
         worker.resultReady.connect(self._on_result)
         worker.done.connect(self._on_done)
-        worker.done.connect(thread.quit)
+        worker.done.connect(thread.quit, Qt.ConnectionType.DirectConnection)  # see SimulationController.run
         thread.finished.connect(worker.deleteLater)
         self._thread, self._worker = thread, worker
         self.started.emit()
@@ -79,6 +80,44 @@ class TestController(QObject):
     def wait(self, timeout_ms: int = 60000) -> None:
         if self._thread is not None:
             self._thread.wait(timeout_ms)
+
+    # ------------------------------------------------------------------ test cases and files
+
+    def unique_name(self, base: str) -> str:
+        """``base``, or ``base 2``, ``base 3``, ... whichever no test case of the model has yet."""
+        names = {c.name for c in self.model.root.tests}
+        if base not in names:
+            return base
+        k = 2
+        while f"{base} {k}" in names:
+            k += 1
+        return f"{base} {k}"
+
+    def export_suite(self, path: str | Path, cases: list[TestCase]) -> Path:
+        from nervus.testing import save_suite
+
+        return Path(save_suite(cases, path))
+
+    def import_suite(self, path: str | Path) -> int:
+        """Add the test cases of a suite file (one undo step); cases whose names exist get a unique name. Raises
+        :class:`~nervus.core.NervusError` if the file cannot be read."""
+        from nervus.testing import load_suite
+
+        new = load_suite(path)
+        tests = list(self.model.root.tests)
+        for case in new:
+            case.name = self.unique_name(case.name)
+            tests.append(case)
+        self.editor.set_tests(tests, f"Import {len(new)} test case{'s' if len(new) != 1 else ''}")
+        return len(new)
+
+    def save_report(self, path: str | Path) -> Path:
+        """An HTML report of the last results, in the order of the model's test cases."""
+        from nervus.testing import save_html_report
+
+        results = [self.results[c.name] for c in self.model.root.tests if c.name in self.results]
+        title = f"Test report — {self.model.root.name or 'model'}"
+        return Path(save_html_report(results, path, title, self.coverage))
 
     @Slot(object)
     def _on_result(self, res: TestResult) -> None:

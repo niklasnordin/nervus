@@ -113,7 +113,7 @@ def matlab_expr(text: str) -> str:
         if step == 0 or (stop - start) / step > 10000:
             return m.group(0)
         n = int((stop - start) / step + 1e-9) + 1
-        return " ".join(f"{start + k * step:g}" for k in range(max(n, 0)))
+        return " ".join(f"{start + k * step:.15g}" for k in range(max(n, 0)))  # all digits, no rounding noise
 
     number = r"-?\d+(?:\.\d*)?(?:e[-+]?\d+)?"
     return re.sub(rf"{number}:{number}(?::{number})?", expand, s)
@@ -135,12 +135,17 @@ class _Archive:
                 f"{path.name} is not an .slx file (an .slx is a zip archive; .mdl files are not read)"
             ) from exc
         self.names = set(self.zip.namelist())
+        self.open_refs: set[str] = set()
+        """The systems being read (a subsystem that contains itself would never end)."""
 
     def system(self, ref: str) -> ET.Element:
         name = f"simulink/systems/{ref}.xml"
         if name not in self.names:
             raise NervusError(f"the .slx file has no {name}")
-        return ET.fromstring(self.zip.read(name))
+        try:
+            return ET.fromstring(self.zip.read(name))
+        except (ET.ParseError, zipfile.BadZipFile, OSError) as exc:
+            raise NervusError(f"cannot read {name} in the .slx file: {exc}") from exc
 
 
 def _params(el: ET.Element) -> dict[str, str]:
@@ -288,6 +293,41 @@ def _make(btype: str, p: dict[str, str], mask_source: str) -> Block | None:
     return None
 
 
+def _port_number(p: dict[str, str], where: str) -> int:
+    text = p.get("Port", "1").strip()
+    if not text.isdigit() or int(text) < 1:
+        raise NervusError(f"{where}: port number {text!r} is not a positive integer; the .slx file is damaged")
+    return int(text)
+
+
+def _not_imported(btype: str, p: dict[str, str]) -> list[str]:
+    """Settings of a translated block that the Nervus block does not have: notes for the report (the block keeps
+    the Nervus behaviour, which may differ)."""
+    notes = []
+    if btype == "DiscreteIntegrator":
+        method = p.get("IntegratorMethod", "")
+        if method not in ("", "Integration: Forward Euler", "Integration: Backward Euler"):
+            notes.append(f"integrator method {method!r} not imported: it integrates with Euler and the sample time "
+                         "(Integration: Forward/Backward Euler); check the block")  # fmt: skip
+        if p.get("LimitOutput", "off") == "on":
+            notes.append("output limits not imported; set the block's upper and lower limits")
+        if p.get("ExternalReset", "none") != "none":
+            notes.append(f"external reset {p['ExternalReset']!r} not imported")
+    if btype == "Lookup_n-D":
+        extrap = p.get("ExtrapMethod", "")
+        if extrap != "Clip":
+            notes.append(f"extrapolation {extrap or '(Simulink default)'!r} not imported: the Nervus table clips at "
+                         "its ends; check the block's extrapolation")  # fmt: skip
+        interp = p.get("InterpMethod", "")
+        if interp not in ("", "Linear", "Linear point-slope"):
+            notes.append(f"interpolation {interp!r} not imported: the Nervus table interpolates linearly")
+    if btype == "Lookup" and p.get("LookUpMeth", "") != "Interpolation-Use End Values":
+        method = p.get("LookUpMeth", "") or "(Simulink default)"
+        notes.append(f"lookup method {method!r} not imported: the Nervus table interpolates linearly and clips at "
+                     "its ends; check the block")  # fmt: skip
+    return notes
+
+
 def _placeholder(n_in: int, n_out: int, btype: str) -> Subsystem:
     """An empty subsystem with the block's ports, for a block that is not translated (its outputs are 0)."""
     inner = Diagram(btype)
@@ -322,9 +362,9 @@ def _build(archive: _Archive, system: ET.Element, d: Diagram, path: str, report:
             report.notes.append(f"{path}{name}: {btype} — the subsystem's enable/trigger is not translated")
             continue
         if btype == "Inport":
-            block = Inport(port=int(p.get("Port", "1")))
+            block = Inport(port=_port_number(p, f"{path}{name}"))
         elif btype == "Outport":
-            block = Outport(port=int(p.get("Port", "1")))
+            block = Outport(port=_port_number(p, f"{path}{name}"))
         elif btype == "SubSystem":
             ref = el.find("System")
             if ref is None or ref.get("Ref") is None:
@@ -341,7 +381,14 @@ def _build(archive: _Archive, system: ET.Element, d: Diagram, path: str, report:
                         sub.mask.add(Variable(k, 1.0, f"from Simulink: {v}"))
                         used |= _names(expr)
                 block = sub
-                _build(archive, archive.system(str(ref.get("Ref"))), inner, f"{path}{name}/", report, used)
+                ref_name = str(ref.get("Ref"))
+                if ref_name in archive.open_refs:
+                    raise NervusError(
+                        f"{path}{name}: the subsystem contains itself ({ref_name}); the .slx file is damaged"
+                    )
+                archive.open_refs.add(ref_name)
+                _build(archive, archive.system(ref_name), inner, f"{path}{name}/", report, used)
+                archive.open_refs.discard(ref_name)
                 used -= set(sub.mask)  # the mask's own parameters
         else:
             try:
@@ -356,6 +403,7 @@ def _build(archive: _Archive, system: ET.Element, d: Diagram, path: str, report:
                 report.unsupported.append(f"{path}{name} ({p.get('SourceBlock', btype)})")
             else:
                 used |= _parameters_used(block)
+                report.notes += [f"{path}{name}: {note}" for note in _not_imported(btype, p)]
         report.blocks += 1
         pos = [float(x) for x in re.findall(r"-?\d+(?:\.\d+)?", p.get("Position", ""))]
         if len(pos) == 4:

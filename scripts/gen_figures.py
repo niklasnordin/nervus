@@ -1890,6 +1890,39 @@ def fmi_exchange() -> plt.Figure:
     return fig
 
 
+@figure("discrete_control")
+def discrete_control() -> plt.Figure:
+    m = _example("discrete_control")
+    fig, ax = plt.subplots(figsize=(6.4, 3.4))
+    base = simulate(m.build(0.01))
+    ax.plot(base.t, base["motor_c"], color=GRID, lw=4, label="continuous")
+    for ts, color in ((0.01, C1), (0.03, C3), (0.05, C4), (0.06, C2)):
+        r = simulate(m.build(ts))
+        ax.plot(r.t, r["motor_d"], color=color, lw=1.3, label=f"T = {ts * 1000:.0f} ms")
+    ax.set_ylim(-20, 230)
+    ax.set_xlim(0, 0.4)
+    ax.set_xlabel("time [s]")
+    ax.set_ylabel("speed [rad/s]")
+    ax.legend(loc="upper right", fontsize=8, ncol=2)
+    ax.set_title("The same PI controller, run every T seconds (closed-loop τ = 20 ms)", color=INK, fontsize=9)
+    fig.tight_layout()
+    return fig
+
+
+@figure("aliasing")
+def aliasing() -> plt.Figure:
+    r = simulate(_example("discrete_control").build_aliasing())
+    fig, ax = plt.subplots(figsize=(6.4, 2.8))
+    ax.plot(r.t, r["vibration"], color=GRID, lw=1.0, label="45 Hz vibration")
+    ax.step(r.t, r["sampled"], where="post", color=C1, lw=1.5, label="sampled every 20 ms: looks like 5 Hz")
+    ax.set_xlabel("time [s]")
+    ax.set_ylim(-1.3, 1.6)
+    ax.legend(loc="upper right", fontsize=8, ncol=2)
+    ax.set_title("Aliasing: a fast signal sampled too slowly", color=INK, fontsize=9)
+    fig.tight_layout()
+    return fig
+
+
 def main() -> None:
     APP_DIR.mkdir(parents=True, exist_ok=True)
     DOCS_DIR.mkdir(parents=True, exist_ok=True)

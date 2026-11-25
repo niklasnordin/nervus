@@ -91,10 +91,10 @@ class LinearModel:
         """(w [rad/s], magnitude [dB], phase [°]) with the phase unwrapped."""
         if w is None:
             w = self.default_frequencies()
-        h = self.frequency_response(w, input, output)
+        num, den = self.transfer_function(input, output)
+        h = np.polyval(num, 1j * np.asarray(w, dtype=float)) / np.polyval(den, 1j * np.asarray(w, dtype=float))
         mag = 20 * np.log10(np.maximum(np.abs(h), 1e-300))
-        phase = np.degrees(np.unwrap(np.angle(h)))
-        return np.asarray(w), mag, phase
+        return np.asarray(w), mag, phase_deg(num, den, w)
 
     def default_frequencies(self) -> Array:
         p = np.abs(self.poles())
@@ -195,30 +195,64 @@ def root_locus(num: Array, den: Array, gains: Array | None = None) -> tuple[Arra
     return np.asarray(gains, dtype=float), np.asarray(rows, dtype=np.complex128)
 
 
+def _low_frequency(num: Array, den: Array) -> tuple[int, float]:
+    """(type, w_ref): the number of poles minus zeros at s = 0, and a frequency well below every other pole and
+    zero, where the phase is close to its low-frequency asymptote -90°·type (or that ±180° for a negative gain)."""
+    zr = np.roots(num) if np.asarray(num).size > 1 else np.zeros(0)
+    pr = np.roots(den) if np.asarray(den).size > 1 else np.zeros(0)
+    roots = np.abs(np.concatenate([zr, pr]))
+    tol = 1e-9 * max(1.0, float(np.max(roots)) if roots.size else 1.0)
+    n_type = int(np.sum(np.abs(pr) <= tol)) - int(np.sum(np.abs(zr) <= tol))
+    others = roots[roots > tol]
+    return n_type, (1e-3 * float(np.min(others)) if others.size else 1.0)
+
+
+def phase_deg(num: Array, den: Array, w: Array) -> Array:
+    """Unwrapped phase [°] of num/den at the frequencies ``w`` (ascending, > 0), on the branch that starts at
+    the low-frequency asymptote -90°·(poles - zeros at s = 0): an integrator is -90°, a double integrator -180°
+    (not +180°, which is where ``np.angle`` would put it)."""
+    w = np.asarray(w, dtype=float)
+    num, den = np.asarray(num, dtype=float), np.asarray(den, dtype=float)
+
+    def angle(x: Array) -> Array:
+        return np.asarray(np.angle(np.polyval(num, 1j * x) / np.polyval(den, 1j * x)))
+
+    if w.size == 0 or np.any(w <= 0) or np.any(np.diff(w) <= 0):
+        return np.asarray(np.degrees(np.unwrap(angle(w))))
+    n_type, w_ref = _low_frequency(num, den)
+    lead = np.zeros(0)
+    if w_ref < w[0]:  # unwrap from far below the first frequency, where the phase is known
+        decades = np.log10(w[0] / w_ref)
+        lead = np.logspace(np.log10(w_ref), np.log10(w[0]), max(2, int(100 * decades) + 1))[:-1]
+    grid = np.concatenate([lead, w])
+    phase = np.degrees(np.unwrap(angle(grid)))
+    target = -90.0 * n_type
+    phase += 360.0 * np.floor((target + 180.0 - phase[0]) / 360.0)  # phase[0] in (target - 180, target + 180]
+    return phase[lead.size :]
+
+
 def tf_margins(num: Array, den: Array) -> Margins:
-    """Gain and phase margins of the open loop num/den in unity negative feedback."""
+    """Gain and phase margins of the open loop num/den in unity negative feedback. The phase margin is wrapped
+    to (-180°, 180°] (for a stable open loop, negative means an unstable closed loop); the gain margin is taken where the phase first
+    crosses -180° (± a multiple of 360°)."""
     w = np.logspace(-4, 5, 20000)
     h = np.polyval(num, 1j * w) / np.polyval(den, 1j * w)
     mag = 20 * np.log10(np.maximum(np.abs(h), 1e-300))
-    phase = np.degrees(np.unwrap(np.angle(h)))
+    phase = phase_deg(num, den, w)
     gm, pm, wgc, wpc = np.inf, np.inf, np.nan, np.nan
     cross = np.nonzero(np.diff(np.sign(mag)) != 0)[0]
     if cross.size:
         k = cross[0]
         wgc = float(np.interp(0.0, [mag[k + 1], mag[k]], [w[k + 1], w[k]]))
         ph = float(np.interp(wgc, w, phase))
-        pm = 180.0 + ph
-    shifted = phase + 180.0
-    pc = np.nonzero(np.diff(np.sign(shifted)) != 0)[0]
+        pm = 180.0 - float(np.mod(-ph, 360.0))  # 180 + ph, wrapped to (-180, 180]
+    band = np.floor((phase + 180.0) / 360.0)  # changes where the phase crosses -180° + 360°·k
+    pc = np.nonzero(np.diff(band) != 0)[0]
     if pc.size:
         k = pc[0]
-        wpc = float(
-            np.interp(
-                0.0,
-                sorted([shifted[k], shifted[k + 1]]),
-                [w[k], w[k + 1]] if shifted[k] < shifted[k + 1] else [w[k + 1], w[k]],
-            )
-        )
+        level = 360.0 * max(band[k], band[k + 1]) - 180.0
+        lo, hi = sorted([(phase[k], w[k]), (phase[k + 1], w[k + 1])])
+        wpc = float(np.interp(level, [lo[0], hi[0]], [lo[1], hi[1]]))
         gm = -float(np.interp(wpc, w, mag))
     return Margins(gm, pm, wgc, wpc)
 

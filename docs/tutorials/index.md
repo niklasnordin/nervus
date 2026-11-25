@@ -1,6 +1,6 @@
 # Tutorials
 
-33 tutorials, grouped by topic. Each one uses a finished model in `examples/`: open it in the editor, run it, read why it behaves as it does, then change it. They are built around problems from the automotive industry and the classic experiments of engineering lab courses.
+35 tutorials, grouped by topic. Each one uses a finished model in `examples/`: open it in the editor, run it, read why it behaves as it does, then change it. They are built around problems from the automotive industry and the classic experiments of engineering lab courses.
 
 Every tutorial has the same parts:
 
@@ -19,6 +19,7 @@ Start here: the editor, and how to organise larger models.
 |---|---|---|---|
 | [Your first model: a cruise control](first-model.md) | beginner | 30 min | the editor, blocks and wires, workspace variables, scopes, the Data Inspector, PI control and integrator windup |
 | [Reusable components with subsystems, masks and libraries](component-libraries.md) | beginner | 30 min | subsystems, masks (parameters for a subsystem), component libraries and linked copies, updating every model from one library |
+| [Scripting and testing models from Python](python-scripting.md) | beginner | 25 min | loading and running a model from a script, changing parameters for one run or for good, parameter sweeps, running a model's test cases in pytest, building a model in code |
 
 ## Control engineering
 
@@ -120,6 +121,7 @@ What happens inside and between ECUs: networks, calibration, diagnostics and the
 
 | Tutorial | Level | Time | You will learn |
 |---|---|---|---|
+| [From continuous to discrete: sample times](discrete-control.md) | beginner | 30 min | what running a controller every T milliseconds does to a loop, the zero-order hold, choosing a sample time, discrete poles and stability, aliasing and anti-aliasing filters |
 | [From model to ECU C code](model-to-code.md) | intermediate | 40 min | an ECU software component with an interface, generated C code and its structure, calibration parameters and the A2L file, a back-to-back (SIL) test of the code, a MISRA C check |
 | [A sensor signal chain in fixed point](fixed-point.md) | intermediate | 30 min | fixed-point data types (word length, fraction bits, resolution, range), an ADC model, quantization error, and the silent failure of a badly chosen range |
 | [Exchanging models with FMI](fmi.md) | intermediate | 30 min | FMI 2.0 co-simulation FMUs: exporting a subsystem, running it in another tool (fmpy, Simulink), importing an FMU as a block, and the communication-step delay of co-simulation |

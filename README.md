@@ -38,7 +38,7 @@ tool for designing, simulating and eventually generating C code for that kind of
 | OBD-II | live data and trouble codes from a real car (ELM327 or CAN), and a simulated ECU to practise with | [OBD-II](docs/obd.md) |
 | Testing | test cases stored with the model, **Signal Builder** (test signals drawn in an editor), Test Manager, Data Inspector, parameter sweeps and Monte Carlo runs, model coverage with MC/DC, **requirements traceability**, Model Advisor | [Testing](docs/testing.md), [Verification](docs/verification.md) |
 | Analysis | linearisation, trim, Bode, Nyquist, root locus, stability margins, step response, PID tuning | [Analysis](docs/analysis.md) |
-| Learning | 33 tutorials in 7 topics, from your first model to ECU code, CAN and diagnostics, each with a finished example model | [Tutorials](docs/tutorials/index.md) |
+| Learning | 35 tutorials in 7 topics, from your first model to ECU code, CAN and diagnostics, each with a finished example model | [Tutorials](docs/tutorials/index.md) |
 
 ## Installation
 
@@ -75,7 +75,7 @@ editor step by step, tune it, and meet integrator windup. Then pick a topic; the
 <!-- tutorials:begin -->
 | Topic | Tutorials |
 |---|---|
-| Getting started | [Your first model: a cruise control](docs/tutorials/first-model.md), [Reusable components with subsystems, masks and libraries](docs/tutorials/component-libraries.md) |
+| Getting started | [Your first model: a cruise control](docs/tutorials/first-model.md), [Reusable components with subsystems, masks and libraries](docs/tutorials/component-libraries.md), [Scripting and testing models from Python](docs/tutorials/python-scripting.md) |
 | Control engineering: classic lab experiments | [Position control of a mass-spring-damper](docs/tutorials/mass-spring-damper.md), [DC motor speed and position control](docs/tutorials/dc-motor.md), [Level control of coupled water tanks](docs/tutorials/coupled-tanks.md), [Balancing an inverted pendulum with state feedback](docs/tutorials/inverted-pendulum.md) |
 | Powertrain and engine control: engine management | [Engine operating modes](docs/tutorials/engine-modes.md), [Radiator fan control](docs/tutorials/coolant-fan.md), [Idle speed control](docs/tutorials/idle-speed-control.md), [Lambda control and fuel trims](docs/tutorials/lambda-control.md), [Ignition timing and knock control](docs/tutorials/ignition-knock.md), [Wall wetting and learned fuel trims](docs/tutorials/fuel-film.md) |
 | Powertrain and engine control: transmission and driveline | [Gear-shift logic](docs/tutorials/gear-shift.md), [A truck on a mountain road](docs/tutorials/truck.md) |
@@ -86,7 +86,7 @@ editor step by step, tune it, and meet integrator windup. Then pick a topic; the
 | Electrics and electronics: ecu hardware and pcb | [An NTC temperature sensor interface](docs/tutorials/ntc-sensor.md), [The injector driver power stage](docs/tutorials/injector-driver.md) |
 | ECU software, communication and diagnostics: vehicle networks | [A vehicle network (CAN)](docs/tutorials/can-network.md), [Live calibration over XCP](docs/tutorials/xcp-calibration.md) |
 | ECU software, communication and diagnostics: diagnostics | [On-board diagnostics and trouble codes](docs/tutorials/obd-diagnostics.md), [Sensor fault diagnosis and substitute values](docs/tutorials/sensor-diagnostics.md) |
-| ECU software, communication and diagnostics: from model to ecu code | [From model to ECU C code](docs/tutorials/model-to-code.md), [A sensor signal chain in fixed point](docs/tutorials/fixed-point.md), [Exchanging models with FMI](docs/tutorials/fmi.md) |
+| ECU software, communication and diagnostics: from model to ecu code | [From continuous to discrete: sample times](docs/tutorials/discrete-control.md), [From model to ECU C code](docs/tutorials/model-to-code.md), [A sensor signal chain in fixed point](docs/tutorials/fixed-point.md), [Exchanging models with FMI](docs/tutorials/fmi.md) |
 | Testing and verification | [Requirements-based testing and coverage](docs/tutorials/requirements-testing.md), [Robustness and tolerances with Monte Carlo](docs/tutorials/robustness-monte-carlo.md) |
 <!-- tutorials:end -->
 

@@ -83,8 +83,9 @@ class DcSweep:
 
 def dc_sweep(diagram: Diagram, block: str, param: str, values: Sequence[float], measure: Sequence[str]) -> DcSweep:
     """Operating points while a parameter of one block (e.g. the voltage *V* of a source) steps through
-    ``values``; ``measure`` names sensor signals or nodes. Like SPICE's ``.dc``. Each point starts from the
-    previous one (the network keeps its last Newton solution), so the sweep follows the circuit smoothly."""
+    ``values``; ``measure`` names sensor signals or nodes. Like SPICE's ``.dc``. Each point is an independent
+    operating point (the model is compiled again, so the Newton iteration does not start from the previous point):
+    a circuit with several stable states (a latch, a Schmitt trigger) shows one of them, not a hysteresis loop."""
     target = dict(diagram.walk()).get(block)
     if target is None:
         raise ModelError(f"no block {block!r}")

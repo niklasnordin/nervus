@@ -122,6 +122,21 @@ class CompiledModel:
             if sl.stop > sl.start and type(b).major_step is not _Block.major_step
         ]
         self._gated = [bool(e or tr) for e, tr in zip(self.enable, self.trigger, strict=True)]
+        # Enable/trigger signals of continuous gated blocks that change continuously: a variable-step solver
+        # locates where they cross zero, so the gate is decided again there (zero-crossing events).
+        gate_signals: list[tuple[int, int]] = []
+        for i, _b, kind, _r, _sl, _inp in self._plan:
+            if kind is not Kind.CONTINUOUS or not self._gated[i]:
+                continue
+            for s, p in [*self.enable[i], *[(s, p) for s, p, _e in self.trigger[i]]]:
+                if self.kinds[s] is Kind.CONTINUOUS and (s, p) not in gate_signals:
+                    gate_signals.append((s, p))
+        self._gate_signals = gate_signals
+        self._gate_probe: dict[tuple[int, int], float] | None = None
+        """Gate signal values a tiny step ahead, used to decide the gates right after they crossed zero."""
+        for b in self.blocks:  # left over from an earlier run (e.g. one that ended with an exception)
+            b.mode = None
+            b.sliding = False
         self._enabled = [True] * len(self.blocks)  # the block ran at its last execution
         self._en_prev = [True] * len(self.blocks)  # its enable was on at its last execution
         self._trig_prev: list[list[float | None]] = [[None] * len(tr) for tr in self.trigger]
@@ -138,13 +153,20 @@ class CompiledModel:
     def _gate(self, i: int) -> bool:
         """Decide whether gated block ``i`` runs at this execution (enabled and/or triggered subsystems)."""
         y = self.y
-        on = all(y[s][p][0] > 0 for s, p in self.enable[i])
+        probe = self._gate_probe
+
+        def value(s: int, p: int) -> float:
+            if probe is not None and (s, p) in probe:
+                return probe[(s, p)]
+            return float(y[s][p][0])
+
+        on = all(value(s, p) > 0 for s, p in self.enable[i])
         if on and not self._en_prev[i] and self.reset_on_enable[i]:
             self.xd[i] = self.xd0[i].copy()  # enabled again: reset states
         self._en_prev[i] = on
         prev = self._trig_prev[i]
         for k, (s, p, edge) in enumerate(self.trigger[i]):
-            now = float(y[s][p][0])
+            now = value(s, p)
             before = prev[k]
             prev[k] = now
             if before is None:  # first execution: only remember the value
@@ -311,6 +333,8 @@ class CompiledModel:
         for i, b, inputs in self._cov_blocks:
             if self.kinds[i] is Kind.DISCRETE and (hits is None or self.rate_index[i] not in hits):
                 continue
+            if self._gated[i] and not self._enabled[i]:
+                continue  # in a disabled (or not triggered) subsystem: it did not execute
             u = [self.y[s][p] for s, p in inputs]
             cov.hit(self.names[i], b.coverage_hits(t, u, self.y[i], self.xd[i]))
             if self.names[i] in cov.conditions:
@@ -329,7 +353,21 @@ class CompiledModel:
 
     @property
     def has_zero_crossings(self) -> bool:
-        return bool(self._zc_blocks)
+        return bool(self._zc_blocks or self._gate_signals)
+
+    @property
+    def has_gate_signals(self) -> bool:
+        """Some continuous block is enabled or triggered by a continuous signal."""
+        return bool(self._gate_signals)
+
+    def probe_gates(self, t: float, xc: Array, probe: float) -> None:
+        """Read the continuous enable/trigger signals a tiny step ``probe`` after ``t``, so the next execution
+        decides the gates by the side the signals move to (right after a zero crossing they sit on zero)."""
+        if not self._gate_signals:
+            return
+        dx = self.derivatives(t, xc) if xc.size else xc
+        self.eval_outputs(t + probe, xc + probe * dx, None)
+        self._gate_probe = {(s, p): float(self.y[s][p][0]) for s, p in self._gate_signals}
 
     def apply_major_step(self, t: float, xc: Array, probe: float | None = None) -> tuple[Array, bool]:
         """Let blocks change their continuous state at a major step (e.g. an integrator reset).
@@ -363,6 +401,8 @@ class CompiledModel:
             z = b.zero_crossings(t, [y[s][p] for s, p in inputs], xc[sl], xd[i])
             if z is not None:
                 parts.append(np.asarray(z, dtype=float).ravel())
+        if self._gate_signals:
+            parts.append(np.array([y[s][p][0] for s, p in self._gate_signals], dtype=float))
         values = np.concatenate(parts) if parts else EMPTY
         return np.where(np.isfinite(values), values, np.sign(values))
 
@@ -374,6 +414,7 @@ class CompiledModel:
             z = b.zero_crossings(t, [self.y[s][p] for s, p in inputs], xc[sl], self.xd[i])
             if z is not None:
                 names.extend([self.names[i]] * np.asarray(z).size)
+        names.extend(self.names[s] for s, _p in self._gate_signals)
         return names
 
     def update(self, t: float, xc: Array, hits: frozenset[int]) -> None:
@@ -471,7 +512,8 @@ def compile_diagram(
     loops = [([pos[m] for m in members], [pos[t] for t in tears]) for members, tears in loop_groups]
 
     task_rate = [graph.task_rate[i] if graph.task_rate[i] is not None else default_rate for i in order]
-    sample_times = _resolve_sample_times(blocks, inputs, task_rate)
+    gate_sources = [[*(s for s, _ in en), *(s for s, _, _ in tr)] for en, tr in zip(enable, trigger, strict=True)]
+    sample_times = _resolve_sample_times(blocks, inputs, task_rate, gate_sources)
     for b, st in zip(blocks, sample_times, strict=True):
         b.resolved_sample_time = st
 
@@ -762,11 +804,19 @@ def _find_cycle(candidates: list[int], deps: list[set[int]]) -> list[int]:
 
 
 def _resolve_sample_times(
-    blocks: list[Block], inputs: list[list[tuple[int, int]]], task_rate: list[SampleTime | None] | None = None
+    blocks: list[Block],
+    inputs: list[list[tuple[int, int]]],
+    task_rate: list[SampleTime | None] | None = None,
+    gate_sources: list[list[int]] | None = None,
 ) -> list[SampleTime]:
     """Resolve inherited sample times. Blocks inside an atomic subsystem with its own sample time
-    (``task_rate``) take that rate; other inherited blocks take the rate of their inputs."""
+    (``task_rate``) take that rate; other inherited blocks take the rate of their inputs.
+
+    A block in an enabled or triggered subsystem (``gate_sources``: the blocks driving its enable/trigger) is never
+    constant, even with constant inputs: it must not run before it is enabled. It takes the rate of its gate
+    signals if that is discrete, otherwise it is continuous."""
     forced = task_rate or [None] * len(blocks)
+    gates = gate_sources or [[] for _ in blocks]
     sts: list[SampleTime | None] = []
     for b, rate in zip(blocks, forced, strict=True):
         st = b.sample_time()
@@ -792,6 +842,10 @@ def _resolve_sample_times(
             if not known:
                 continue
             new = _combine(known)
+            if new.is_constant and gates[i]:
+                gate_rates = {st for st in (sts[g] for g in gates[i]) if st is not None}
+                rate = _combine(gate_rates) if gate_rates else CONTINUOUS
+                new = rate if rate.is_discrete else CONTINUOUS
             if new.is_constant and not b.CAN_BE_CONSTANT:
                 new = CONTINUOUS
             if new != sts[i]:

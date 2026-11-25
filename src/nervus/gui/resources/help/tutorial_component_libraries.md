@@ -75,4 +75,4 @@ shared in Git as a whole. See *Component libraries* and *Subsystems*.
 
 ## Next
 
-That was the last tutorial on getting started. Continue with control engineering: *Position control of a mass-spring-damper*, or pick another one from the *tutorial overview*.
+Next in this topic: *Scripting and testing models from Python*. Or pick another one from the *tutorial overview*.

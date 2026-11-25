@@ -154,6 +154,17 @@ def test_block_back_to_back(label: str, factory: Callable[[], Block], n_inputs: 
     assert res.passed, res.summary()
 
 
+@pytest.mark.parametrize("extrapolation", ["clip", "linear"])
+def test_lookup_nearest_ties_go_up_in_simulation_and_c(extrapolation: str, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """Exactly half way between two breakpoints, nearest takes the upper point, whatever the extrapolation."""
+    blk = Lookup1D(breakpoints=[0, 1, 2, 4], table=[10, 20, 30, 40], interpolation="nearest",
+                   extrapolation=extrapolation)  # fmt: skip
+    u = np.resize([0.5, 1.5, 3.0, 0.49, 2.99, -1.0, 5.0], STEPS)
+    res = back_to_back(harness(blk, 1), {"u0": u}, STEPS, tolerance=0.0, folder=tmp_path)
+    assert res.passed, res.summary()
+    np.testing.assert_array_equal(np.ravel(res.python["y0"])[:7], [20, 30, 40, 10, 30, 10, 40])
+
+
 def test_vectors_mux_demux_matrix_gain(tmp_path) -> None:  # type: ignore[no-untyped-def]
     d = Diagram("vec")
     a = d.add(Inport(port=1, value=[0.0, 0.0]), name="a")
@@ -370,3 +381,101 @@ def test_sample_time_offsets_match_the_first_step(tmp_path) -> None:  # type: ig
     assert res.passed, res.summary()
     assert res.c["y0"][0, 0] == 2.0 and res.c["y1"][0, 0] == 5.0 and res.c["y2"][0, 0] == 3.0
     assert "rt_first" in generate_c(d).files["offsets.c"]
+
+
+def test_sil_rounds_fixed_point_inputs(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """Regression: the SIL harness truncated the stored value of a fixed-point input (-76.3 became -76.2)."""
+    d = Diagram("fx")
+    u = d.add(Inport(port=1, output_type="fixdt(1, 16, 0.1, 0)"), name="u")
+    d.chain(u, d.add(ZeroOrderHold(sample_time=0.01), name="z"), d.add(Outport(port=1), name="y"))
+    vals = np.array([-76.3, -75.8, 12.3, -0.7, 1.0])
+    res = back_to_back(d, {"u": vals}, len(vals), tolerance=0.0, folder=tmp_path)
+    assert res.passed, res.summary()
+
+
+def test_block_names_that_are_c_keywords(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    d = Diagram("kw")
+    u = d.add(Inport(port=1), name="int")
+    d.chain(u, d.add(ZeroOrderHold(sample_time=0.01), name="switch"), d.add(Gain(gain=2.0), name="NAN"))
+    d.connect(d.block("NAN"), d.add(Outport(port=1), name="double"))
+    res = back_to_back(d, {"int": np.arange(5.0)}, 5, tolerance=0.0, folder=tmp_path)
+    assert res.passed, res.summary()
+    assert "kw_B.switch_[0]" in generate_c(d).files["kw.c"]
+
+
+def test_block_names_that_collide_in_c(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """Different block names that become the same C name (also with the _<n> and _o<port> suffixes, and a block
+    field named like a workspace variable) get different fields."""
+    d = Diagram("names")
+    d.workspace["g_x_gain"] = 7.0  # not used: a block field must still not take its name
+    u = d.add(Inport(port=1, value=[0.0, 0.0]), name="u")
+    z = d.add(ZeroOrderHold(sample_time=0.01), name="z")
+    dm = d.add(Demux(num_outputs=2), name="a")  # fields a_o0, a_o1
+    g0 = d.add(Gain(gain=5.0), name="a_o0")
+    g1 = d.add(Gain(gain=2.0), name="g x")
+    g2 = d.add(Gain(gain=3.0), name="g_x")
+    g3 = d.add(Gain(gain=4.0), name="g_x_1")
+    d.chain(u, z, dm)
+    d.chain((dm, 0), g0, g1, g2, g3)
+    d.connect(g3, d.add(Outport(port=1), name="y"))
+    d.connect((dm, 1), d.add(Outport(port=2), name="y2"))
+    inputs = {"u": RNG.uniform(-1, 1, (10, 2))}
+    res = back_to_back(d, inputs, 10, tolerance=0.0, folder=tmp_path)
+    assert res.passed, res.summary()
+    assert np.allclose(res.c["y"][:, 0], 120.0 * inputs["u"][:, 0])
+    params = generate_c(d).params
+    assert "g_x_gain" not in params and params["g_x_gain_1"] == [2.0]
+
+
+def test_in_blocks_with_the_same_c_name_are_refused() -> None:
+    d = Diagram("io")
+    s = d.add(Sum(), name="s")
+    d.connect(d.add(Inport(port=1), name="a b"), (s, 0))
+    d.connect(d.add(Inport(port=2), name="a_b"), (s, 1))
+    d.chain(s, d.add(ZeroOrderHold(sample_time=0.01)), d.add(Outport(port=1), name="y"))
+    with pytest.raises(CodegenError, match="both become the C field a_b"):
+        generate_c(d)
+
+
+def test_a2l_of_integer_code_matches_the_struct(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """Regression: the A2L file described every signal of integer-only code as an 8-byte double."""
+    import re
+    import subprocess
+
+    d = Diagram("ia")
+    u = d.add(Inport(port=1, output_type="int8"), name="u")
+    z = d.add(ZeroOrderHold(sample_time=0.01), name="z")
+    g = d.add(Gain(gain=2.0, output_type="int32"), name="g")
+    c = d.add(CompareToConstant(operator=">", constant=3.0), name="c")
+    f = d.add(Gain(gain=0.5, output_type="fixdt(1, 16, 7)"), name="f")
+    d.chain(u, z, g)
+    d.chain(z, c)
+    d.chain(z, f)
+    for k, blk in enumerate((g, c, f)):
+        d.connect(blk, d.add(Outport(port=k + 1), name=f"y{k}"))
+    code = generate_c(d, integer_only=True)
+    a2l = code.files["ia.a2l"]
+    meas = re.findall(r"MEASUREMENT ia_B\.(\w+) .*?\n\s+(\w+) (\w+) .*?@ia_B\+(\d+)", a2l, re.S)
+    assert {(n, t) for n, t, _m, _o in meas} == {("u", "SBYTE"), ("z", "SBYTE"), ("g", "SLONG"), ("c", "UBYTE"),
+                                                 ("f", "SWORD")}  # fmt: skip
+    assert "COEFFS_LINEAR 0.0078125 0.0" in a2l  # f is shown in physical units
+    code.write(tmp_path)
+    prog = ["#include <stdio.h>", "#include <stddef.h>", '#include "ia.h"', "int main(void) {"]
+    prog += [f'printf("{n} %zu\\n", offsetof(ia_B_t, {n}));' for n, _t, _m, _o in meas]
+    (tmp_path / "chk.c").write_text("\n".join([*prog, "return 0;", "}"]))
+    exe = tmp_path / "chk"
+    subprocess.run([find_compiler(), "-o", str(exe), "chk.c", "ia.c", "-lm"], cwd=tmp_path, check=True)
+    offsets = dict(
+        line.split() for line in subprocess.run([str(exe)], capture_output=True, text=True).stdout.split("\n") if line
+    )
+    assert {n: int(o) for n, _t, _m, o in meas} == {n: int(o) for n, o in offsets.items()}
+
+
+def test_misra_findings_are_parsed_with_windows_paths() -> None:
+    """Regression: cppcheck's lines start with the file path, which on Windows has a drive letter and a colon."""
+    from nervus.codegen.misra import _LINE
+
+    out = (r"C:\Users\me\AppData\Local\Temp\tmp1\dut.c:12:5: style: misra violation [misra-c2012-10.4]" "\n"
+           "/tmp/tmp2/dut.c:7:1: style: misra violation [misra-c2012-2.5]\n")  # fmt: skip
+    found = [(m.group("file"), m.group("line"), m.group("rule")) for m in _LINE.finditer(out)]
+    assert found == [(r"C:\Users\me\AppData\Local\Temp\tmp1\dut.c", "12", "10.4"), ("/tmp/tmp2/dut.c", "7", "2.5")]

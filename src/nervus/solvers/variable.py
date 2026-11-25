@@ -17,7 +17,10 @@ _EPS = np.finfo(float).eps
 
 def _crossed(g_old: float, g_new: float, direction: float) -> bool:
     """The same rule as scipy's solve_ivp: a sign change or reaching zero, upwards (``direction`` > 0), downwards
-    (< 0) or either way (0)."""
+    (< 0) or either way (0). A signal that stays at exactly zero does not cross (a saturation input resting on its
+    limit would otherwise fire at the start of every step)."""
+    if g_old == 0.0 and g_new == 0.0:
+        return False
     up, down = g_old <= 0.0 <= g_new, g_old >= 0.0 >= g_new
     return (up and direction > 0) or (down and direction < 0) or ((up or down) and direction == 0)
 

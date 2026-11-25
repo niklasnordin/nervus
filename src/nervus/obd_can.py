@@ -23,7 +23,7 @@ from collections.abc import Callable
 from typing import Any
 
 from nervus.core.errors import install_hint
-from nervus.obd import ObdError, Pid, decode_dtc, supported_from_bitmask
+from nervus.obd import ObdError, Pid, decode_dtc, supported_from_bitmask, vin_from_bytes
 from nervus.obd_sim import SimulatedEcu
 
 FUNCTIONAL_ID = 0x7DF
@@ -157,8 +157,7 @@ class CanObd:
         reply = self.request(bytes([0x09, 0x02]))
         if reply is None:
             return None
-        chars = "".join(chr(c) for c in reply[3:] if 48 <= c <= 90)
-        return chars[-17:] if len(chars) >= 17 else None
+        return vin_from_bytes(reply[3:])
 
     def close(self) -> None:
         self.bus.shutdown()

@@ -357,6 +357,13 @@ class Diagram:
     def disconnect(self, conn: Connection) -> None:
         self._connections.remove(conn)
 
+    def reconnect(self, conn: Connection) -> Connection:
+        """Put back a connection that was removed, as the same object (with its drawing data), so references
+        to it stay valid, e.g. in an undo history. It is checked like a new connection."""
+        self.connect((conn.src, conn.src_port), (conn.dst, conn.dst_port))
+        self._connections[-1] = conn
+        return conn
+
     # ------------------------------------------------------------------ physical links
 
     @property
@@ -388,6 +395,12 @@ class Diagram:
 
     def unlink(self, link: Link) -> None:
         self._links.remove(link)
+
+    def relink(self, link: Link) -> Link:
+        """Put back a link that was removed, as the same object (see :meth:`reconnect`)."""
+        self.link((link.a, link.a_port), (link.b, link.b_port))
+        self._links[-1] = link
+        return link
 
     def driver(self, block: Block, in_port: int) -> Connection | None:
         """The connection driving ``block``'s input ``in_port``, if any."""

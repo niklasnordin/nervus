@@ -130,3 +130,30 @@ def test_live_calibration_over_virtual_can(tmp_path: Path) -> None:
     y, s = np.ravel(r["y"]), np.sin(2.0 * r.t)
     late = r.t > r.t[np.argmax(kp == 5.0)] + 0.01
     assert np.allclose(y[late], 5.0 * s[late], atol=1e-9)
+
+
+def test_master_uses_the_byte_order_of_a_motorola_slave() -> None:
+    # A big-endian ECU (BYTE_ORDER = 1 in CONNECT): the SET_MTA address and the values are Motorola.
+    ram = bytearray(struct.pack(">dh", 1.5, -300))
+
+    def write(off: int, data: bytes) -> None:
+        ram[off : off + len(data)] = data
+
+    class Motorola(XcpServer):
+        def handle(self, req: bytes) -> bytes:
+            if req[:1] == bytes([0xFF]):
+                self.connected = True
+                return bytes([0xFF, 0x01, 0x01, 8, 0x00, 0x08, 0x01, 0x01])
+            if req[:1] == bytes([0xF6]):
+                self.mta = int.from_bytes(req[4:8], "big")
+                return bytes([0xFF])
+            return super().handle(req)
+
+    from nervus.xcp import A2lObject
+
+    objects = {"x": A2lObject("x", 0x1000, "FLOAT64_IEEE"), "n": A2lObject("n", 0x1008, "SWORD")}
+    m = XcpMaster(DirectTransport(Motorola(Memory([Region(0x1000, 10, lambda: bytes(ram), write)]))), objects)
+    assert m.connect()["max_dto"] == 8
+    assert m.read("x") == 1.5 and m.read("n") == -300
+    m.write("n", 1234)
+    assert struct.unpack(">h", ram[8:10])[0] == 1234

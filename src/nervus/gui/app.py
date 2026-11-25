@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QApplication
 
 from nervus.gui.qtfix import unhide_qt_plugins
 from nervus.gui.theme import ThemeManager, ThemeMode
+from nervus.gui.views.welcome import show_at_startup
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -35,6 +36,8 @@ def main(argv: list[str] | None = None) -> int:
     if files:
         window.files.open(files[0])
     window.show()
+    if not files and show_at_startup(settings):
+        window.show_welcome()
     return app.exec()
 
 

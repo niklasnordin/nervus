@@ -64,6 +64,10 @@ TUTORIALS: list[Tutorial] = [
     Tutorial("component-libraries", "Reusable components with subsystems, masks and libraries", "Getting started",
              "", "beginner", 30, "subsystems, masks (parameters for a subsystem), component libraries and linked "
              "copies, updating every model from one library", ("engine_comparison.nervus",), ("first-model",)),
+    Tutorial("python-scripting", "Scripting and testing models from Python", "Getting started", "", "beginner", 25,
+             "loading and running a model from a script, changing parameters for one run or for good, parameter "
+             "sweeps, running a model's test cases in pytest, building a model in code", ("cruise_control.nervus",),
+             ("first-model",)),
     # ------------------------------------------------------------------ control labs
     Tutorial("mass-spring-damper", "Position control of a mass-spring-damper", "Control engineering",
              "Classic lab experiments", "beginner", 30,
@@ -160,6 +164,11 @@ TUTORIALS: list[Tutorial] = [
              "intermediate", 30, "range checks on a sensor signal, open circuit and short to ground (P0117/P0118), "
              "debouncing, substitute values for limp-home, fault injection in a test", ("ntc_sensor.nervus",),
              ("ntc-sensor",)),
+    Tutorial("discrete-control", "From continuous to discrete: sample times", _ECU, "From model to ECU code",
+             "beginner", 30, "what running a controller every T milliseconds does to a loop, the zero-order hold, "
+             "choosing a sample time, discrete poles and stability, aliasing and anti-aliasing filters",
+             ("discrete_control.nervus", "aliasing.nervus"), ("first-model",),
+             "[Sample times](../concepts.md#sample-times)"),
     Tutorial("model-to-code", "From model to ECU C code", _ECU, "From model to ECU code", "intermediate", 40,
              "an ECU software component with an interface, generated C code and its structure, calibration "
              "parameters and the A2L file, a back-to-back (SIL) test of the code, a MISRA C check", ("throttle_ecu.nervus",),
