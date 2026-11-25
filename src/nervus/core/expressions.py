@@ -43,25 +43,50 @@ _FUNCS: dict[str, Callable[[Any], Any]] = {
 }
 
 
+_GROUP = re.compile(r"\[([^\[\]]*)\]")
+"""A bracketed group without brackets inside: a vector/matrix literal or a subscript."""
+_OPERATORS = "+-*/^%"
+
+
+def _elements(row: str) -> list[str]:
+    """Split one row of a MATLAB matrix into its elements. Commas and spaces separate elements, but (as in MATLAB)
+    a binary operator with spaces on both sides joins its neighbours (``[1 - 2]`` is ``-1``, ``[1 -2]`` two
+    elements), and so does a token that ends with an operator or an open parenthesis."""
+    items: list[str] = []
+    for part in row.split(","):
+        merged: list[str] = []
+        join_next = False
+        for tok in part.split():
+            standalone = all(c in _OPERATORS for c in tok)
+            if merged and (join_next or standalone or tok[0] in "*/^%"):
+                merged[-1] += " " + tok
+            else:
+                merged.append(tok)
+            last = merged[-1]
+            join_next = last[-1] in _OPERATORS or last.count("(") > last.count(")")
+        items.extend(merged)
+    return items
+
+
+def _convert_group(match: re.Match[str]) -> str:
+    body = match.group(1).strip()
+    if not body:
+        return "[]"
+    if ";" not in body and "," in body:  # already Python: a list or a subscript
+        return match.group(0)
+    rows = [r for r in (_elements(r) for r in body.split(";")) if r]
+    if ";" in body:
+        return "[" + ", ".join("[" + ", ".join(r) + "]" for r in rows) + "]"
+    return "[" + ", ".join(rows[0]) + "]" if rows else "[]"
+
+
 def _matlab_to_python(text: str) -> str:
-    """``[1 2; 3 4]`` -> ``[[1, 2], [3, 4]]`` (only for a single bracketed literal); MATLAB ``~=``, ``&&``,
-    ``||`` and ``~`` -> Python ``!=``, ``and``, ``or``, ``not``."""
+    """MATLAB-style vectors and matrices, also inside a larger expression: ``[1 2; 3 4]`` -> ``[[1, 2], [3, 4]]``,
+    ``[0 0.5 1] * v_max`` -> ``[0, 0.5, 1] * v_max``; MATLAB ``~=``, ``&&``, ``||`` and ``~`` -> Python ``!=``,
+    ``and``, ``or``, ``not``."""
     text = text.replace("~=", "!=").replace("&&", " and ").replace("||", " or ")
     text = re.sub(r"~(?!=)", " not ", text).strip()
-    s = text.strip()
-    if not (s.startswith("[") and s.endswith("]")) or s.count("[") != 1:
-        return text
-    body = s[1:-1].strip()
-    if ";" not in body and "," in body:
-        return text
-    rows = [r.strip() for r in body.split(";")]
-    py_rows = []
-    for r in rows:
-        items = [x for x in re.split(r"[,\s]+", r) if x]
-        py_rows.append("[" + ", ".join(items) + "]")
-    if ";" in body:
-        return "[" + ", ".join(py_rows) + "]"
-    return py_rows[0] if py_rows else "[]"
+    return _GROUP.sub(_convert_group, text)
 
 
 class UnknownNameError(ValueError):
@@ -93,7 +118,7 @@ def _eval(node: ast.AST, names: Mapping[str, Any] | None = None) -> Any:
     if isinstance(node, ast.Name) and node.id in _NAMES:
         return _NAMES[node.id]
     if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub | ast.UAdd):
-        v = _eval(node.operand, names)
+        v = _as_operand(_eval(node.operand, names))
         return -v if isinstance(node.op, ast.USub) else v
     if isinstance(node, ast.Compare) and all(type(op) in _COMPARE for op in node.ops):
         # Comparisons give 1.0 (true) or 0.0 (false), element-wise for arrays; chains like 0 < x < 3 work.
@@ -115,7 +140,8 @@ def _eval(node: ast.AST, names: Mapping[str, Any] | None = None) -> Any:
         v = np.asarray(_eval(node.operand, names)) == 0
         return float(v) if np.ndim(v) == 0 else np.asarray(v, dtype=float)
     if isinstance(node, ast.BinOp) and type(node.op) in _BINOPS:
-        return _BINOPS[type(node.op)](_eval(node.left, names), _eval(node.right, names))
+        # Lists are vectors here: [1, 2] * 2 is [2, 4] (not list repetition), [1, 2] + [3, 4] is [4, 6].
+        return _BINOPS[type(node.op)](_as_operand(_eval(node.left, names)), _as_operand(_eval(node.right, names)))
     if isinstance(node, ast.List | ast.Tuple):
         return [_eval(e, names) for e in node.elts]
     if (
@@ -163,6 +189,8 @@ def parse_value(text: str, names: Mapping[str, Any] | None = None) -> Any:
         return _eval(tree, names)
     except ZeroDivisionError as exc:
         raise ValueError("division by zero") from exc
+    except (TypeError, IndexError, OverflowError) as exc:  # e.g. sqrt([1, 2]), v[5]: a clean error to report
+        raise ValueError(f"cannot evaluate {text!r}: {exc}") from exc
 
 
 def _nested(value: Any) -> str:

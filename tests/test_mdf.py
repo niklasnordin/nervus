@@ -49,3 +49,21 @@ def test_groups_with_different_rates(tmp_path: Path) -> None:
     assert fixed.t[1] - fixed.t[0] == 0.5 and fixed.names() == ["T_coolant"]
     with pytest.raises(NervusError, match="no channel"):
         read_mdf(path, ["nope"])
+
+
+def test_channel_names_in_several_groups(tmp_path: Path) -> None:
+    # A decoded CAN log: every message has its own CRC channel. None of them may be dropped.
+    mdf = asammdf.MDF(version="4.10")
+    t1, t2 = np.arange(0, 1, 0.01), np.arange(0, 1, 0.1)
+    mdf.append([asammdf.Signal(10 * t1, t1, name="rpm"), asammdf.Signal(1 + 0 * t1, t1, name="CRC")])
+    mdf.append([asammdf.Signal(5 * t2, t2, name="speed"), asammdf.Signal(2 + 0 * t2, t2, name="CRC")])
+    p = tmp_path / "log.mf4"
+    mdf.save(p, overwrite=True)
+    mdf.close()
+    assert list(mdf_channels(p)) == ["rpm", "CRC@0", "CRC@1", "speed"]
+    back = read_mdf(p)
+    assert set(back.names()) == {"rpm", "CRC@0", "CRC@1", "speed"}
+    assert np.all(back["CRC@0"] == 1.0) and np.all(back["CRC@1"] == 2.0)
+    assert read_mdf(p, list(mdf_channels(p))).names() == back.names()
+    with pytest.raises(NervusError, match="CRC@0, CRC@1"):
+        read_mdf(p, ["CRC"])

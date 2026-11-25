@@ -34,7 +34,9 @@ DEVIATIONS: dict[str, str] = {
     "lowercase 'l' suffix; the generated code writes all integer suffixes as 'u'",
 }
 
-_LINE = re.compile(r"^(?P<file>[^:\n]+):(?P<line>\d+):(?P<col>\d+): \w+: .*?\[misra-c2012-(?P<rule>[\d.]+)\]$", re.M)
+_LINE = re.compile(
+    r"^(?P<file>(?:[A-Za-z]:)?[^:\n]+):(?P<line>\d+):(?P<col>\d+): \w+: .*?\[misra-c2012-(?P<rule>[\d.]+)\]$", re.M
+)
 
 
 @dataclass(frozen=True)

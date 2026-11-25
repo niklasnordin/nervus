@@ -531,3 +531,39 @@ def test_fmi_exchange() -> None:
     assert np.max(runs["fmu"]["plate_angle"]) == pytest.approx(np.max(runs["subsystem"]["plate_angle"]), abs=0.5)
     r = m.run_in_fmpy(m.FMU_PATH)
     assert r["duty_pct"][19] == 0.0 and r["duty_pct"][21] == pytest.approx(82.5, abs=0.5)
+
+
+def test_scripting() -> None:
+    """The numbers quoted in docs/tutorials/python-scripting.md."""
+    out = _import("scripting").main()
+    assert out["base"]["speed"][-1] == pytest.approx(99.97, abs=0.01)
+    assert out["p_only"]["speed"][-1] == pytest.approx(97.40, abs=0.01)
+    assert out["windup"]["speed"].max() == pytest.approx(138.57, abs=0.05)
+    overshoots = {row["Kp"]: row["overshoot"] for row in out["sweep"].rows}
+    assert overshoots[100.0] == pytest.approx(9.73, abs=0.02)
+    assert overshoots[300.0] == overshoots[1000.0] == 0.0
+    assert all(r.passed for r in out["tests"])
+    assert out["first_order"]["y"][-1] == pytest.approx(1 - np.exp(-6), abs=1e-4)
+
+
+def test_discrete_control() -> None:
+    """The numbers quoted in docs/tutorials/discrete-control.md."""
+    mod = _import("discrete_control")
+    out = mod.main()
+    overshoots = [row["overshoot"] for row in out["sweep"].rows]
+    assert overshoots == sorted(overshoots)  # slower sampling, more overshoot
+    by_t = dict(zip(mod.SAMPLE_TIMES, overshoots, strict=True))
+    assert by_t[0.01] < 0.5 and by_t[0.02] < 2.0 and 25.0 < by_t[0.03] < 35.0
+    unstable = simulate(mod.build(0.06), t_final=2.0)["motor_d"]
+    assert np.abs(unstable).max() > 500.0
+    res = out["aliasing"]
+    assert mod.dominant_frequency(res.t, res["sampled"]) == pytest.approx(5.0, abs=0.1)
+
+
+@pytest.mark.parametrize("name", ["discrete_control"])
+def test_new_saved_models_match_scripts(name: str) -> None:
+    mod = _import(name)
+    expected = simulate(mod.build())
+    loaded = simulate(load(EXAMPLES / f"{name}.nervus"))
+    for key in expected.signals:
+        np.testing.assert_allclose(loaded.signals[key], expected.signals[key])

@@ -151,10 +151,11 @@ def build() -> Diagram:
     d.tests = [
         TestCase(
             "energy management protects the battery",
-            "After 8 s in the traffic jam the battery is no longer discharged by more than 5 A, and it charges when driving",
+            "From 8.5 s into the traffic jam (loads shed at 8 s) the battery is no longer discharged by more than 5 A, and "
+            "it charges when driving",
             stop_time=480.0,
             checks=[
-                Check("bounds", "battery_charging", {"lower": -5.0, "t_from": 8.0, "t_to": 240.0}),
+                Check("bounds", "battery_charging", {"lower": -5.0, "t_from": 8.5, "t_to": 240.0}),
                 Check("bounds", "battery_charging", {"lower": 10.0, "t_from": 245.0}),
             ],
         ),

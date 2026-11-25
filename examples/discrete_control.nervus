@@ -1,0 +1,294 @@
+{
+  "format": "nervus-model",
+  "schema_version": 4,
+  "name": "discrete_control",
+  "meta": {},
+  "settings": {
+    "t_start": 0.0,
+    "t_final": 0.4,
+    "solver": "auto",
+    "step": null,
+    "max_step": 0.001,
+    "rtol": 1e-06,
+    "atol": 1e-08,
+    "zero_crossing": true
+  },
+  "workspace": [
+    {
+      "name": "K",
+      "value": 2.0,
+      "description": "Motor gain: speed per volt",
+      "unit": "rad/s/V"
+    },
+    {
+      "name": "tau",
+      "value": 0.1,
+      "description": "Motor time constant",
+      "unit": "s"
+    },
+    {
+      "name": "tau_cl",
+      "value": 0.02,
+      "description": "Wanted closed-loop time constant",
+      "unit": "s"
+    },
+    {
+      "name": "Kp",
+      "value": "tau / (K * tau_cl)",
+      "description": "Proportional gain",
+      "unit": "V/(rad/s)"
+    },
+    {
+      "name": "Ki",
+      "value": "Kp / tau",
+      "description": "Integral gain (cancels the motor pole)",
+      "unit": "V/(rad/s·s)"
+    },
+    {
+      "name": "T",
+      "value": 0.01,
+      "description": "Controller sample time",
+      "unit": "s"
+    }
+  ],
+  "blocks": [
+    {
+      "name": "set_speed",
+      "type": "sources.step",
+      "params": {
+        "time": 0.05,
+        "initial": 0.0,
+        "final": 100.0,
+        "sample_time": 0.0
+      },
+      "meta": {
+        "position": [
+          0.0,
+          60.0
+        ]
+      }
+    },
+    {
+      "name": "error_c",
+      "type": "math.sum",
+      "params": {
+        "signs": "+-",
+        "output_type": "inherit"
+      },
+      "meta": {
+        "position": [
+          160.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "pi_continuous",
+      "type": "control.pid",
+      "params": {
+        "P": "Kp",
+        "I": "Ki",
+        "D": 0.0,
+        "N": 100.0,
+        "initial_integrator": 0.0,
+        "upper": "inf",
+        "lower": "-inf",
+        "anti_windup": "none",
+        "Kb": 1.0
+      },
+      "meta": {
+        "position": [
+          300.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "motor_c",
+      "type": "continuous.transfer_function",
+      "params": {
+        "numerator": "[K]",
+        "denominator": "[tau, 1]"
+      },
+      "meta": {
+        "position": [
+          470.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "error_d",
+      "type": "math.sum",
+      "params": {
+        "signs": "+-",
+        "output_type": "inherit"
+      },
+      "meta": {
+        "position": [
+          160.0,
+          160.0
+        ]
+      }
+    },
+    {
+      "name": "pi_discrete",
+      "type": "control.discrete_pid",
+      "params": {
+        "P": "Kp",
+        "I": "Ki",
+        "D": 0.0,
+        "N": 100.0,
+        "initial_integrator": 0.0,
+        "upper": "inf",
+        "lower": "-inf",
+        "anti_windup": "none",
+        "Kb": 1.0,
+        "sample_time": "T"
+      },
+      "meta": {
+        "position": [
+          300.0,
+          160.0
+        ]
+      }
+    },
+    {
+      "name": "motor_d",
+      "type": "continuous.transfer_function",
+      "params": {
+        "numerator": "[K]",
+        "denominator": "[tau, 1]"
+      },
+      "meta": {
+        "position": [
+          470.0,
+          160.0
+        ]
+      }
+    },
+    {
+      "name": "sensor",
+      "type": "discrete.zero_order_hold",
+      "params": {
+        "sample_time": "T"
+      },
+      "meta": {
+        "position": [
+          300.0,
+          270.0
+        ],
+        "flipped": true
+      }
+    },
+    {
+      "name": "scope",
+      "type": "sinks.scope",
+      "params": {
+        "num_inputs": 3
+      },
+      "meta": {
+        "position": [
+          680.0,
+          60.0
+        ]
+      }
+    }
+  ],
+  "connections": [
+    {
+      "src": "set_speed",
+      "src_port": 0,
+      "dst": "error_c",
+      "dst_port": 0
+    },
+    {
+      "src": "motor_c",
+      "src_port": 0,
+      "dst": "error_c",
+      "dst_port": 1
+    },
+    {
+      "src": "error_c",
+      "src_port": 0,
+      "dst": "pi_continuous",
+      "dst_port": 0
+    },
+    {
+      "src": "pi_continuous",
+      "src_port": 0,
+      "dst": "motor_c",
+      "dst_port": 0
+    },
+    {
+      "src": "set_speed",
+      "src_port": 0,
+      "dst": "error_d",
+      "dst_port": 0
+    },
+    {
+      "src": "sensor",
+      "src_port": 0,
+      "dst": "error_d",
+      "dst_port": 1
+    },
+    {
+      "src": "error_d",
+      "src_port": 0,
+      "dst": "pi_discrete",
+      "dst_port": 0
+    },
+    {
+      "src": "pi_discrete",
+      "src_port": 0,
+      "dst": "motor_d",
+      "dst_port": 0
+    },
+    {
+      "src": "motor_d",
+      "src_port": 0,
+      "dst": "sensor",
+      "dst_port": 0
+    },
+    {
+      "src": "set_speed",
+      "src_port": 0,
+      "dst": "scope",
+      "dst_port": 0
+    },
+    {
+      "src": "motor_c",
+      "src_port": 0,
+      "dst": "scope",
+      "dst_port": 1
+    },
+    {
+      "src": "motor_d",
+      "src_port": 0,
+      "dst": "scope",
+      "dst_port": 2
+    }
+  ],
+  "tests": [
+    {
+      "name": "the 10 ms controller tracks like the continuous one",
+      "description": "At T = 10 ms the overshoot stays below 15 % and the speed settles within 1 % in 0.2 s",
+      "stop_time": 0.4,
+      "inputs": {},
+      "checks": [
+        {
+          "kind": "bounds",
+          "signal": "motor_d",
+          "upper": 115.0
+        },
+        {
+          "kind": "bounds",
+          "signal": "motor_d",
+          "lower": 99.0,
+          "upper": 101.0,
+          "t_from": 0.25
+        }
+      ]
+    }
+  ]
+}

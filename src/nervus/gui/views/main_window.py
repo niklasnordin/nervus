@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -58,7 +59,9 @@ from nervus.gui.views.settings_dialog import SettingsDialog
 from nervus.gui.views.signal_editor import SignalEditor
 from nervus.gui.views.sweep_dialog import SweepDialog
 from nervus.gui.views.test_manager import TestManagerPanel
+from nervus.gui.views.tour import EditorTour, editor_stops
 from nervus.gui.views.usages_dialog import UsagesDialog
+from nervus.gui.views.welcome import WelcomeDialog
 from nervus.gui.views.workspace_panel import WorkspacePanel
 from nervus.io import FILE_EXTENSION
 
@@ -101,6 +104,8 @@ class MainWindow(QMainWindow):
         self._types_timer.setInterval(300)
         self._types_timer.timeout.connect(self.refresh_types)
         self._help: HelpBrowser | None = None
+        self._welcome: WelcomeDialog | None = None
+        self._tour: EditorTour | None = None
 
         self.breadcrumb = QWidget()
         self.breadcrumb_layout = QHBoxLayout(self.breadcrumb)
@@ -167,7 +172,7 @@ class MainWindow(QMainWindow):
     def _action(
         self,
         text: str,
-        slot: object,
+        slot: Callable[[], object],
         shortcut: QKeySequence | QKeySequence.StandardKey | Qt.Key | str | None = None,
         tip: str = "",
         icon_name: str | None = None,
@@ -183,7 +188,8 @@ class MainWindow(QMainWindow):
         if icon_name:
             a.setIcon(icon(icon_name))
             a.setProperty("icon_name", icon_name)
-        a.triggered.connect(slot)
+        # Drop the 'checked' argument of triggered(): several slots take an optional path, which it would fill.
+        a.triggered.connect(lambda _checked=False, s=slot: s())
         return a
 
     def _actions(self) -> None:
@@ -305,6 +311,10 @@ class MainWindow(QMainWindow):
             "Model &Advisor…", self.show_advisor, "Ctrl+Shift+A", "Check the model for risky modelling practices"
         )
         self.act_help = self._action("Nervus &Help", self.show_help, "Ctrl+?", "Open the help", "help")
+        self.act_welcome = self._action(
+            "&Welcome…", self.show_welcome, None, "Start here: the first tutorial, examples and recent models"
+        )
+        self.act_tour = self._action("Editor &Tour", self.start_tour, None, "A one-minute tour of the editor")
         self.act_block_help = self._action("Help for Selected &Block", self.show_block_help, Qt.Key.Key_F1)
         self.act_about = self._action("&About Nervus", self.about)
 
@@ -380,6 +390,8 @@ class MainWindow(QMainWindow):
         m.addAction(self.act_codegen)
         m.addAction(self.act_export_fmu)
         m = mb.addMenu("&Help")
+        m.addActions([self.act_welcome, self.act_tour])
+        m.addSeparator()
         m.addActions([self.act_help, self.act_block_help])
         m.addSeparator()
         m.addAction(self.act_about)
@@ -458,6 +470,8 @@ class MainWindow(QMainWindow):
         self.diagram_model.currentChanged.connect(self._on_current_changed)
         self.diagram_model.changed.connect(lambda: self._annotations_on() and self._types_timer.start())
         self.diagram_model.blockRenamed.connect(self._on_renamed)
+        self.diagram_model.nameChanged.connect(lambda _n: self._rebuild_breadcrumb())
+        self.diagram_model.blockRemoved.connect(self._close_scope_of)
         self.files.errorOccurred.connect(lambda msg: QMessageBox.warning(self, "Nervus", msg))
         self.codegen.errorOccurred.connect(self._codegen_error)
         self.files.recentFilesChanged.connect(self._rebuild_recent)
@@ -518,37 +532,25 @@ class MainWindow(QMainWindow):
         if not self._annotations_on():
             self.scene.set_type_labels({})
             return
-        from nervus.sim import compile_diagram
+        from nervus.gui.controllers.annotations import signal_annotations
 
         try:
-            m = compile_diagram(self.diagram_model.root)
+            ann = signal_annotations(
+                self.diagram_model,
+                types=self.act_types.isChecked(),
+                widths=self.act_widths.isChecked(),
+                rates=self.act_rates.isChecked(),
+            )
         except NervusError:
             self.status_label.setText("Annotations are shown once the model compiles (see Diagnostics).")
             return
-        labels: dict[tuple[str, int], str] = {}
-        wide: set[tuple[str, int]] = set()
-        colors: dict[str, QColor] = {}
-        legend = sample_time_colors(m.rates)
-        for i, ts in enumerate(m.out_types):
-            paths = {m.names[i], self.diagram_model.path_of(m.origin[i])}  # In blocks in subsystems: both
-            for p, t in enumerate(ts):
-                parts = []
-                if self.act_types.isChecked() and not t.is_double:
-                    parts.append(t.short_name)
-                width = m.out_widths[i][p]
-                if self.act_widths.isChecked() and width > 1:
-                    parts.append(f"[{width}]")
-                    wide.update((path, p) for path in paths)
-                if parts:
-                    labels.update({(path, p): " ".join(parts) for path in paths})
-            if self.act_rates.isChecked():
-                color = legend.get(_rate_key(m, i))
-                if color is not None:
-                    colors.update({path: QColor(color) for path in paths})
+        legend = sample_time_colors(ann.rates)
+        legend["continuous"] = current_theme().wire  # the normal wire colour
+        colors = {path: QColor(legend[key]) for path, key in ann.rate_of.items() if key in legend}
         self._colour_subsystems(colors)
-        self.scene.set_type_labels(labels, wide, colors)
+        self.scene.set_type_labels(ann.labels, ann.wide, colors)
         self.rates_legend.setText(
-            "  ".join(f'<span style="color:{c}">■</span> {name}' for name, c in _legend_names(m, legend)) + "  "
+            "  ".join(f'<span style="color:{legend[key]}">■</span> {name}' for name, key in ann.legend) + "  "
         )
 
     def _colour_subsystems(self, colors: dict[str, QColor]) -> None:
@@ -680,6 +682,7 @@ class MainWindow(QMainWindow):
     def _on_reset(self) -> None:
         for w in self.scopes.values():
             w.close()
+            w.deleteLater()  # else it stays connected to the results and redraws for a model that is gone
         self.scopes.clear()
         warnings = self.diagram_model.root.link_warnings
         if warnings:
@@ -790,22 +793,15 @@ class MainWindow(QMainWindow):
 
     def import_simulink(self, path: str | None = None, show_report: bool = True) -> bool:
         """Open a Simulink .slx model as a new (unsaved) model, and show what was not translated."""
-        from PySide6.QtWidgets import QFileDialog
-
-        from nervus.simulink import read_slx
-
         if path is None:
             if not self._confirm_discard():
                 return False
             path, _ = QFileDialog.getOpenFileName(self, "Import Simulink model", "", "Simulink models (*.slx)")
             if not path:
                 return False
-        try:
-            model = read_slx(path)
-        except (NervusError, OSError) as exc:
-            QMessageBox.warning(self, "Nervus", f"Cannot read {path}:\n{exc}")
+        model = self.files.import_simulink(path)
+        if model is None:
             return False
-        self.diagram_model.set_diagram(model)
         report = str(model.meta.get("simulink_report", ""))
         self.status_label.setText(f"Imported {Path(path).name}: {report.splitlines()[0] if report else ''}")
         if show_report and "\n" in report:
@@ -814,10 +810,6 @@ class MainWindow(QMainWindow):
 
     def import_spice(self, path: str | None = None) -> bool:
         """Open a SPICE netlist as a new (unsaved) model."""
-        from PySide6.QtWidgets import QFileDialog
-
-        from nervus.spice import read_netlist
-
         if path is None:
             if not self._confirm_discard():
                 return False
@@ -826,12 +818,9 @@ class MainWindow(QMainWindow):
             )
             if not path:
                 return False
-        try:
-            model = read_netlist(path)
-        except (NervusError, OSError) as exc:
-            QMessageBox.warning(self, "Nervus", f"Cannot read {path}:\n{exc}")
+        model = self.files.import_spice(path)
+        if model is None:
             return False
-        self.diagram_model.set_diagram(model)
         skipped = model.meta.get("spice_skipped")
         self.status_label.setText(
             f"Imported {Path(path).name}" + (f" — not supported, left out: {', '.join(skipped)}" if skipped else "")
@@ -839,15 +828,12 @@ class MainWindow(QMainWindow):
         return True
 
     def export_spice(self, path: str | None = None) -> bool:
-        from PySide6.QtWidgets import QFileDialog
-
-        from nervus.spice import write_netlist
-
         if path is None:
             path, _ = QFileDialog.getSaveFileName(self, "Export SPICE netlist", "circuit.cir", "SPICE netlists (*.cir)")
             if not path:
                 return False
-        write_netlist(self.diagram_model.root, path)
+        if not self.files.export_spice(path):
+            return False
         self.status_label.setText(f"Wrote {path}")
         return True
 
@@ -880,15 +866,14 @@ class MainWindow(QMainWindow):
             self.status_label.setText(error or f"Added library {Path(path).name}")
 
     def refresh_links(self) -> None:
-        from nervus.library import linked_subsystems, refresh_links
+        from nervus.library import linked_subsystems
 
         if not linked_subsystems(self.diagram_model.root):
             self.status_label.setText("This model has no linked library subsystems.")
             return
-        warnings = refresh_links(self.diagram_model.root)
-        self.diagram_model.set_diagram(self.diagram_model.root, self.diagram_model.file_path)
-        self.editor.undo_stack.clear()
-        self.status_label.setText(warnings[0] if warnings else "Library links updated.")
+        warnings = self.editor.refresh_links()  # one undo step; the model stays modified until saved
+        if warnings is not None:
+            self.status_label.setText(warnings[0] if warnings else "Library links updated.")
 
     def save_to_library(self) -> None:
         blocks = [b for b in self.scene.selected_blocks() if hasattr(b, "system")]
@@ -1012,6 +997,11 @@ class MainWindow(QMainWindow):
         self.act_stop.setEnabled(running)
         self.progress.setVisible(running)
         self.stop_time.setEnabled(not running)
+        # Loading another model mid-run would hand the old run's result to the new model.
+        for act in (self.act_new, self.act_open, self.act_import_simulink, self.act_import_spice):
+            act.setEnabled(not running)
+        self.examples_menu.setEnabled(not running)
+        self.recent_menu.setEnabled(not running and bool(self.files.recent_files()))
         if running:
             self.status_label.setText("Simulating…")
             self._open_scopes()  # at the start, so they plot live
@@ -1039,12 +1029,16 @@ class MainWindow(QMainWindow):
             if b.type_id == "sinks.scope":
                 self.open_scope(b)
 
+    def _close_scope_of(self, block: Block) -> None:
+        win = self.scopes.get(id(block))
+        if win is not None and win.block is block:
+            win.close()
+
     def open_scope(self, block: Block) -> ScopeWindow:
         win = self.scopes.get(id(block))
         if win is None:
             win = ScopeWindow(block, self.sim_model, self, self.diagram_model.path_of(block))
             self.scopes[id(block)] = win
-            self.diagram_model.blockRemoved.connect(lambda b, w=win, blk=block: b is blk and w.close())
         win.show()
         win.raise_()
         return win
@@ -1180,6 +1174,42 @@ class MainWindow(QMainWindow):
         self._help.raise_()
         return self._help
 
+    # ------------------------------------------------------------------ onboarding
+
+    def show_welcome(self) -> WelcomeDialog:
+        """The start window (non-modal, so the editor stays usable behind it)."""
+        dlg = WelcomeDialog(self.qsettings, self.files.recent_files(), self)
+        dlg.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        dlg.firstModelRequested.connect(self.start_first_tutorial)
+        dlg.tourRequested.connect(self.start_tour)
+        dlg.newModelRequested.connect(self.new_file)
+        dlg.openRequested.connect(self.open_file)
+        dlg.exampleRequested.connect(self.open_example_with_tutorial)
+        dlg.recentRequested.connect(self._open_path)
+        dlg.tutorialsRequested.connect(lambda: self._help_browser().show_page("page:tutorials"))
+        dlg.show()
+        self._welcome = dlg
+        return dlg
+
+    def start_tour(self) -> EditorTour:
+        tour = EditorTour(self, editor_stops(self))
+        tour.start()
+        self._tour = tour
+        return tour
+
+    def start_first_tutorial(self) -> None:
+        """An empty model, with the first tutorial open beside it."""
+        if not self._confirm_discard():
+            return
+        self.files.new()
+        self._help_browser().show_page("page:tutorial_first_model")
+        self.status_label.setText("Follow the tutorial in the help window: start by adding the 8 blocks of step 1.")
+
+    def open_example_with_tutorial(self, model: Path, help_page: str) -> None:
+        self.open_example(model)
+        if self.diagram_model.file_path is not None and self.diagram_model.file_path.resolve() == model.resolve():
+            self._help_browser().show_page(f"page:{help_page}")
+
     def show_help(self) -> None:
         self._help_browser().show_page("page:getting_started")
 
@@ -1238,29 +1268,3 @@ def sample_time_colors(rates: list[Any]) -> dict[Any, str]:
     colors: dict[Any, str] = {r: series[order[k % len(order)]] for k, r in enumerate(rates)}
     colors["constant"] = series[4]
     return colors
-
-
-def _rate_key(m: Any, i: int) -> Any:
-    from nervus.sim.compiler import Kind
-
-    kind = m.kinds[i]
-    if kind is Kind.CONSTANT:
-        return "constant"
-    if kind is Kind.DISCRETE:
-        return m.rates[m.rate_index[i]]
-    return None  # continuous: the normal colour
-
-
-def _legend_names(m: Any, colors: dict[Any, str]) -> list[tuple[str, str]]:
-    from nervus.sim.compiler import Kind
-
-    out = []
-    for r in m.rates:
-        period = r.period
-        name = f"{period * 1000:g} ms" if period < 1 else f"{period:g} s"
-        out.append((name + (f" (offset {r.offset:g} s)" if r.offset else ""), colors[r]))
-    if any(k is Kind.CONTINUOUS for k in m.kinds):
-        out.append(("continuous", current_theme().wire))
-    if any(k is Kind.CONSTANT for k in m.kinds):
-        out.append(("constant", colors["constant"]))
-    return out

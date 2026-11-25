@@ -3,6 +3,9 @@
 Nervus models a system as a **block diagram**: blocks are small dynamic systems (a gain, an integrator, a
 PID controller), and the lines between them carry signals.
 
+New here? **Help ▸ Editor Tour** shows the parts of the editor in a minute, and **Help ▸ Welcome** offers the
+first tutorial (a cruise control, built step by step) and the beginner examples, each with its tutorial.
+
 ## Build your first model in 5 steps
 
 1. **Add blocks.** Drag a block from the **Library** (left) onto the canvas, or double-click it in the
@@ -84,3 +87,5 @@ Complete example models come with Nervus: **File → Open Example** lists the mo
 | `injector_driver.nervus` | an injector power stage: opening and closing delays, freewheel diode versus clamp (tutorial) |
 | `fmi_plant.nervus` | the throttle plant with the ECU as an FMU (run `examples/fmi_exchange.py` first to build the FMU; tutorial) |
 | `obd_ecu.nervus` | an engine ECU with trouble codes that answers OBD-II tools (`python -m nervus.obd simulate`) |
+| `discrete_control.nervus` | one PI loop run continuously and as a sampled ECU task: overshoot and instability as the sample time grows (tutorial) |
+| `aliasing.nervus` | a 45 Hz vibration sampled at 50 Hz looks like 5 Hz (tutorial) |

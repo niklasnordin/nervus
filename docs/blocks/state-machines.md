@@ -32,7 +32,8 @@ Inputs and outputs become the block's ports, in the order they are declared; wit
 last output gives the active state's number (0, 1, ... in the order the states are written). Every sample
 period the transitions leaving the active state are checked in the order written; the first true guard
 fires (exit → transition action → entry). Otherwise the state's *during* actions run. ``after(n)`` is true
-after *n* periods in the state, and ``t_in_state`` is the time in the state in seconds.
+after *n* periods in the state, and ``t_in_state`` is the time in the state in seconds. The initial state is
+entered in the first sample (its entry actions see the inputs of that sample), and its clock starts there.
 
 The chart runs at a discrete rate, and can be generated as C code.
 

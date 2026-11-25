@@ -37,7 +37,11 @@ _LATEX_SYMBOLS = {
     r"\int": "∫",
     r"\cdot": "·",
     r"\le": "≤",
+    r"\leq": "≤",
     r"\ge": "≥",
+    r"\geq": "≥",
+    r"\left": "",
+    r"\right": "",
     r"\infty": "∞",
     r"\qquad": "\n",
     r"\quad": "  ",
@@ -52,11 +56,12 @@ def latex_to_text(tex: str) -> str:
     s = tex
     s = re.sub(r"\\begin\{cases\}|\\end\{cases\}", "", s)
     s = re.sub(r"\\text\{([^{}]*)\}", r"\1", s)
-    s = re.sub(r"\\dot\s*\{?(\w)\}?", lambda m: m.group(1) + "\u0307", s)
+    s = re.sub(r"\\dot(?![a-zA-Z])\s*\{?(\w)\}?", lambda m: m.group(1) + "\u0307", s)
     for _ in range(3):  # nested fractions
         s = re.sub(r"\\frac\{([^{}]*)\}\{([^{}]*)\}", r"(\1) / (\2)", s)
-    for k, v in _LATEX_SYMBOLS.items():
-        s = s.replace(k.replace("\\\\", "\\"), v)
+    for k, v in _LATEX_SYMBOLS.items():  # whole commands only: \le is not the start of \left or \leq
+        whole = r"(?![a-zA-Z])" if k[-1].isalpha() else ""
+        s = re.sub(re.escape(k) + whole, v.replace("\\", r"\\"), s)
     s = s.replace("\\\\", "\n").replace("&", " ")
     s = re.sub(r",?\s*\n\s*", "\n", s)
     return re.sub(r"[ \t]+", " ", s).strip()

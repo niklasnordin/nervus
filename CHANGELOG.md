@@ -5,6 +5,66 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- A welcome window at startup: build your first model with its tutorial beside it, take a tour, open a beginner
+  example together with its tutorial, or reopen a recent model. **Help ▸ Welcome** brings it back; it can be
+  switched off.
+- An editor tour (**Help ▸ Editor Tour**): the library, canvas, properties, Run, the panels and the help, one at a
+  time, with the rest of the window dimmed.
+- Tutorial *Scripting and testing models from Python*: loading and running models, parameters for one run or for
+  good, sweeps, the model's test cases in pytest, models built in code (`examples/scripting.py`).
+- Tutorial *From continuous to discrete: sample times*: a PI loop run every T ms, from no difference to
+  instability, discrete poles, and aliasing (`examples/discrete_control.nervus`, `examples/aliasing.nervus`).
+
+### Fixed
+- File ▸ Import Simulink, Import SPICE, Export SPICE and Code ▸ Export FMU did nothing from the menu.
+- Closing the window during a simulation hung for 5 s and left the simulation thread running.
+- Undo after deleting and restoring a block could fail (*list.remove(x): x not in list*) and leave a wire behind;
+  restored wires also lost their manually placed corners.
+- File ▸ Refresh Links marked the model as saved, so unsaved changes could be lost on closing.
+- Scope windows of earlier models stayed alive and redrew on every run.
+- New, Open and the examples are disabled while a simulation runs (the old run's result ended up in the new
+  model).
+- Simulation: an enabled or triggered subsystem with a continuous enable signal was decided only at the start and
+  end of a variable-step run; the enable is now located exactly with zero-crossing events.
+- Simulation: a zero-crossing signal resting at exactly 0 fired 50 false events and switched zero-crossing
+  detection off with a "chatters" warning.
+- Simulation: a run that failed left saturation modes frozen, so the next run (even fixed-step) gave wrong results.
+- Simulation: a negative start time skipped every discrete sample before t = 0; a fixed-step start time off the
+  sample grid never ran the discrete blocks (it is now an error).
+- Blocks inside an enabled subsystem whose inputs are constant ignored the enable; coverage reported outcomes for
+  subsystems that never ran.
+- Expressions: lists are vectors in arithmetic (`[1, 2] + [3, 4]` was concatenated), MATLAB brackets work inside
+  larger expressions (`[0 0.5 1] * v_max`), and type errors are reported as parameter errors.
+- State Chart: the initial state is entered in the first sample with the real inputs (its entry actions saw every
+  input as 0), so `after(n)` and `t_in_state` count from its entry (they were one sample early); a transition to
+  an enclosing state exits and re-enters it (its entry ran twice without its exit). The *charging system* example
+  now raises the idle speed after 3.0 s and sheds loads at 8.0 s (15 samples of 0.2 s), not 2.8 s and 7.8 s.
+- Generated chart code: `%` is a floored modulo and `and`/`or` return an operand, as in the simulation.
+- Lookup tables: *nearest* interpolation rounds exact midpoints up in every extrapolation mode, as the C code does.
+- Linear analysis: phase and margins of loops with poles at the origin or a negative gain were off by 360° (a phase
+  margin of +340° for an unstable loop); PID tuning of integrating plants used the wrong margin.
+- Integer-only code: Compare To Constant with `==`/`!=` and a constant the input type cannot hold gave wrong
+  results; infinite saturation limits and thresholds raised an internal error.
+- FMU export: integer and fixed-point inputs and outputs corrupted memory (read and written as doubles); reusable
+  functions were not compiled into the FMU.
+- A2L files for integer-only code declared every measurement as a 64-bit float at the wrong offset.
+- C code: block names that are C keywords or collide after conversion to C names no longer break the build.
+- The software-in-the-loop check rounds fixed-point inputs (truncation gave false failures).
+- A damaged `.nervus` or `.slx` file gives a clear error instead of an internal one; Simulink ranges keep their
+  digits; Simulink settings that are not imported are listed in the import report.
+- OBD-II: trouble codes from multi-frame and multi-ECU replies, VINs from non-CAN cars, and the generic/
+  manufacturer classification of B2/C2/U2 codes.
+- MDF4: channel names that occur in several groups (e.g. CRC) are kept as `CRC@0`, `CRC@1` instead of dropped.
+- XCP: the master follows the slave's byte order (Motorola ECUs got wrong addresses and values).
+- In-app help: `\left(` and `\leq` in block equations were shown as `≤ft(` and `≤q`.
+- MISRA findings with Windows paths were dropped; library links saved on Windows did not resolve elsewhere.
+
+### Changed
+- The editor follows its model–view–controller rules more strictly, checked by `tests/test_architecture.py`:
+  Refresh Links is undoable, resizing a block changes the model only when the drag ends, and file import/export,
+  test-suite handling and the wire annotations moved from the views to the controllers.
+
 ## [0.1.0] - 2026-11-24
 
 The first release on PyPI: `pip install "nervus[gui]"`.

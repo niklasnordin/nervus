@@ -168,68 +168,105 @@ def decode_dtc(two_bytes: bytes) -> str:
 
 
 def describe_dtc(code: str) -> str:
-    """A short description for common generic codes; otherwise the code's category."""
+    """A short description for common generic codes; otherwise the code's category (SAE J2012: P0, P2 and the
+    P34-P39 range are generic; for B, C and U only 0 is generic, 1 and 2 are manufacturer-specific)."""
     if code in DTC_DESCRIPTIONS:
         return DTC_DESCRIPTIONS[code]
     system = {"P": "powertrain", "C": "chassis", "B": "body", "U": "network"}[code[0]]
-    kind = "generic (SAE)" if code[1] in "02" else "manufacturer-specific"
-    return f"{kind} {system} code"
+    generic = code[1] == "0" or (code[0] == "P" and (code[1] == "2" or (code[1] == "3" and code[2] in "456789")))
+    return f"{'generic (SAE)' if generic else 'manufacturer-specific'} {system} code"
 
 
-def _hex_bytes(text: str) -> list[bytes]:
-    """The data bytes of each reply line. Handles CAN multi-frame replies (``0: 49 02 01 ...``) and skips the
-    byte-count line before them."""
-    lines = []
+def _responses(text: str) -> list[bytes]:
+    """The data bytes of each response in an ELM327 reply (headers off).
+
+    A response is one line, or a CAN multi-frame message: a byte-count line (``014``) followed by numbered frames
+    (``0: 49 02 01 ...``, ``1: ...``). Those are joined and cut to the byte count, which drops the padding of the
+    last frame. Several ECUs answering give several responses.
+    """
+    out: list[bytes] = []
+    multi: bytearray | None = None
+    count: int | None = None
+
+    def flush() -> None:
+        nonlocal multi, count
+        if multi is not None:
+            out.append(bytes(multi[:count] if count is not None else multi))
+        multi, count = None, None
+
     for line in text.replace("\r", "\n").split("\n"):
         line = line.strip().upper()
         if not line or line.startswith(("SEARCHING", ">")) or "NO DATA" in line:
             continue
-        if len(line) >= 2 and line[1] == ":" and line[0] in "0123456789ABCDEF":
-            line = line[2:]  # CAN frame index
         compact = line.replace(" ", "")
-        if len(compact) <= 3:
-            continue  # byte count of a multi-frame reply
+        if len(line) >= 2 and line[1] == ":" and line[0] in "0123456789ABCDEF":  # a numbered CAN frame
+            try:
+                data = bytes.fromhex(compact[2 : 2 + ((len(compact) - 2) // 2) * 2])
+            except ValueError:
+                continue
+            # frame 0 again: another ECU's message, unless the index wrapped (F -> 0) in a long message
+            if multi is None or (line[0] == "0" and len(multi) > 0 and (count is None or len(multi) >= count)):
+                flush()
+                multi = bytearray()
+            multi += data
+            continue
+        flush()
+        if len(compact) <= 3:  # the byte count of the multi-frame message that follows (or an echo such as "03")
+            try:
+                count = int(compact, 16)
+            except ValueError:
+                count = None
+            multi = bytearray() if count is not None else None
+            continue
         try:
-            lines.append(bytes.fromhex(compact[: (len(compact) // 2) * 2]))
+            out.append(bytes.fromhex(compact[: (len(compact) // 2) * 2]))
         except ValueError:
             continue
-    return lines
+    flush()
+    return [r for r in out if r]
 
 
 def parse_dtcs(text: str, mode: int = 3) -> list[str]:
     """Trouble codes in a reply to mode 03 (stored), 07 (pending) or 0A (permanent).
 
     Non-CAN cars answer ``43 01 33 00 00 00 00`` (three codes per line, padded with 0000); CAN cars add the
-    number of codes: ``43 02 01 33 04 20``.
+    number of codes: ``43 02 01 33 04 20`` (with long lists as a multi-frame message). The codes of every ECU
+    that answers are returned, in the order of the replies.
     """
     head = 0x40 + mode
-    lines = _hex_bytes(text)
-    data = b"".join(lines)
-    if not data or head not in data:
-        return []
     codes: list[str] = []
-    if len(lines) == 1 or lines[0][0] != head or any(len(x) != 7 for x in lines):  # CAN: header, count, codes
-        body = data[data.index(head) + 1 :]
-        if len(body) % 2 == 1:
-            count, body = body[0], body[1:]
-            body = body[: 2 * count]
-        pairs = [body[k : k + 2] for k in range(0, len(body) - 1, 2)]
-    else:  # non-CAN: every line is 43 + three codes
-        pairs = [x[k : k + 2] for x in lines for k in (1, 3, 5)]
-    for pair in pairs:
-        if pair != b"\x00\x00":
-            codes.append(decode_dtc(pair))
+    for r in _responses(text):
+        if r[0] != head:
+            continue
+        # CAN: header, count, two bytes per code (an even length); non-CAN: header and three codes (7 bytes)
+        body = r[2 : 2 + 2 * r[1]] if len(r) % 2 == 0 else r[1:]
+        for k in range(0, len(body) - 1, 2):
+            if body[k : k + 2] != b"\x00\x00":
+                codes.append(decode_dtc(body[k : k + 2]))
     return codes
 
 
-def parse_vin(text: str) -> str | None:
-    """The 17-character vehicle identification number in a reply to mode 09 PID 02."""
-    data = b"".join(_hex_bytes(text))
-    k = data.find(b"\x49\x02")
-    if k < 0:
-        return None
-    chars = "".join(chr(c) for c in data[k + 2 :] if 48 <= c <= 90)  # 0-9 and A-Z
+VIN_CHARACTERS = frozenset(b"0123456789ABCDEFGHJKLMNPRSTUVWXYZ")
+"""The characters of a VIN (ISO 3779): digits and capital letters except I, O and Q."""
+
+
+def vin_from_bytes(data: bytes) -> str | None:
+    """The VIN in the data bytes of a mode 09 PID 02 reply after the header (fill bytes are dropped)."""
+    chars = bytes(c for c in data if c in VIN_CHARACTERS).decode("ascii")
     return chars[-17:] if len(chars) >= 17 else None
+
+
+def parse_vin(text: str) -> str | None:
+    """The 17-character vehicle identification number in a reply to mode 09 PID 02.
+
+    CAN cars send one multi-frame message ``49 02 01`` + 17 characters; non-CAN cars five lines
+    ``49 02 nn`` + 4 bytes (the first one starting with three fill bytes)."""
+    parts = sorted((r[2], r[3:]) for r in _responses(text) if len(r) >= 3 and r[:2] == b"\x49\x02")
+    if not parts:
+        return None
+    if len(parts) == 1 or parts[0][0] != 1 or len(parts[0][1]) >= 17:  # CAN: one message with every character
+        return vin_from_bytes(parts[0][1])
+    return vin_from_bytes(b"".join(data for _n, data in parts))
 
 
 class Transport(Protocol):

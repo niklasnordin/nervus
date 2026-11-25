@@ -34,7 +34,8 @@ class LibraryLink:
     """Name of the subsystem in the library."""
 
     def resolve(self, base_dir: str | Path | None) -> Path:
-        p = Path(self.library)
+        # A model saved on Windows stores "..\\libs\\parts.nervlib"; "/" works on every system.
+        p = Path(self.library.replace("\\", "/"))
         if not p.is_absolute() and base_dir is not None:
             p = Path(base_dir) / p
         return p.resolve()

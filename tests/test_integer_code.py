@@ -109,3 +109,47 @@ def test_refusals_say_why(change, message: str) -> None:  # type: ignore[no-unty
     change(d)
     with pytest.raises(CodegenError, match=message):
         generate_c(d, integer_only=True)
+
+
+def _one_block(block, output_type: str = "int16") -> Diagram:  # type: ignore[no-untyped-def]
+    d = Diagram("one")
+    u = d.add(Inport(port=1, output_type=output_type), name="u")
+    z = d.add(ZeroOrderHold(sample_time=0.01), name="z")
+    b = d.add(block, name="dut")
+    d.chain(u, z, b)
+    d.connect(b, d.add(Outport(port=1), name="y"))
+    return d
+
+
+@pytest.mark.parametrize("block", [
+    CompareToConstant(operator="==", constant=0.5),  # no int16 equals 0.5: always false
+    CompareToConstant(operator="!=", constant=0.5),  # always true
+    CompareToConstant(operator=">", constant=float("inf")),
+    CompareToConstant(operator="<=", constant=float("inf")),
+    CompareToConstant(operator=">=", constant=float("-inf")),
+    Saturation(upper=float("inf"), lower=0.0),  # only a lower limit
+    Saturation(upper=100.0, lower=float("-inf")),
+], ids=["eq_half", "ne_half", "gt_inf", "le_inf", "ge_minus_inf", "sat_upper_inf", "sat_lower_inf"])  # fmt: skip
+def test_constants_outside_the_stored_integers(block, tmp_path: Path) -> None:  # type: ignore[no-untyped-def]
+    """Regression: a constant that no stored integer can equal, or an infinite limit, is bit-true too (it used to
+    compare against 0, or fail with an OverflowError)."""
+    u = np.array([-32768.0, -3.0, -1.0, 0.0, 1.0, 2.0, 500.0, 32767.0])
+    res = back_to_back(_one_block(block), {"u": u}, len(u), tolerance=0.0, folder=tmp_path, integer_only=True)
+    assert res.passed, res.summary()
+
+
+def test_switch_with_an_infinite_threshold(tmp_path: Path) -> None:
+    d = Diagram("sw")
+    for k in range(3):
+        u = d.add(Inport(port=k + 1, output_type="int16"), name=f"u{k}")
+        z = d.add(ZeroOrderHold(sample_time=0.01), name=f"z{k}")
+        d.chain(u, z)
+    sw = d.add(Switch(threshold=float("-inf")), name="sw")
+    for k in range(3):
+        d.connect(d.block(f"z{k}"), (sw, k))
+    d.connect(sw, d.add(Outport(port=1), name="y"))
+    rng = np.random.default_rng(3)
+    inputs = {f"u{k}": np.round(rng.uniform(-100, 100, 20)) for k in range(3)}
+    res = back_to_back(d, inputs, 20, tolerance=0.0, folder=tmp_path, integer_only=True)
+    assert res.passed, res.summary()
+    assert np.array_equal(res.c["y"][:, 0], inputs["u0"])

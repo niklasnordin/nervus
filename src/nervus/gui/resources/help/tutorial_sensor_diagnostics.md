@@ -56,4 +56,4 @@ The model's three test cases check the normal warm-up and both faults; run them 
 
 ## Next
 
-Next in this topic: *From model to ECU C code*. Or pick another one from the *tutorial overview*.
+Next in this topic: *From continuous to discrete: sample times*. Or pick another one from the *tutorial overview*.

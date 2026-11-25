@@ -295,8 +295,14 @@ def save(diagram: Diagram, path: str | Path) -> Path:
 
 
 def load(path: str | Path) -> Diagram:
-    text = Path(path).read_text(encoding="utf-8")
-    data = json.loads(text) if text.strip().startswith("{") else None
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise ModelError(f"{Path(path).name} is not a model file (not UTF-8 text): {exc}") from exc
+    try:
+        data = json.loads(text) if text.strip().startswith("{") else None
+    except json.JSONDecodeError as exc:
+        raise ModelError(f"model file is not valid JSON: {exc}") from exc
     if isinstance(data, dict) and data.get("format") == FORMAT:
         # Set the source path before building blocks, so relative file parameters (e.g. DBC files) resolve.
         _SOURCE.path = str(Path(path).resolve())

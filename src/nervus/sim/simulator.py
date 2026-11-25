@@ -42,7 +42,8 @@ class _RateScheduler:
 
     def __init__(self, rates: list[SampleTime], t_start: float) -> None:
         self.rates = rates
-        self.counts = [max(0, math.ceil((t_start - r.offset) / r.period - 1e-9)) for r in rates]
+        # The first hit at or after t_start (k may be negative when the run starts before t = 0).
+        self.counts = [math.ceil((t_start - r.offset) / r.period - 1e-9) for r in rates]
 
     def next_hit(self, k: int) -> float:
         r = self.rates[k]
@@ -156,7 +157,7 @@ class _ZeroCrossings:
 
     MAX_REPEATS = 50
 
-    def __init__(self, model: CompiledModel, span: float, info: dict[str, Any]) -> None:
+    def __init__(self, model: CompiledModel, span: float, info: dict[str, Any], t0: float = 0.0) -> None:
         self.model = model
         self.span = max(span, 1e-12)
         self.info = info
@@ -171,10 +172,12 @@ class _ZeroCrossings:
         self.unfrozen: set[int] = set()
         self.signal_block: list[int] = []
         x0 = model.xc0
-        model.eval_outputs(0.0, x0, None, init=True)
+        model.eval_outputs(t0, x0, None, init=True)
         for i, b, sl, inputs in model._zc_blocks:
-            z = b.zero_crossings(0.0, [model.y[s][p] for s, p in inputs], x0[sl], model.xd[i])
+            z = b.zero_crossings(t0, [model.y[s][p] for s, p in inputs], x0[sl], model.xd[i])
             self.signal_block.extend([i] * (0 if z is None else np.asarray(z).size))
+        # Enable/trigger signals: owner -2 - (index of the block driving the signal).
+        self.signal_block.extend(-2 - s for s, _p in model._gate_signals)
 
     def _values_at(self, t: float, x: Array) -> Array:
         key = (t, x.tobytes())
@@ -243,7 +246,12 @@ class _ZeroCrossings:
             self.unfrozen.add(block)
             if block >= 0:
                 self.model.blocks[block].sliding = True  # blocks may switch to a smooth version of the switch
-            who = self.model.names[block] if block >= 0 else "a block"
+            if block >= 0:
+                who = self.model.names[block]
+            elif block <= -2:
+                who = f"the enable/trigger signal from {self.model.names[-2 - block]}"
+            else:
+                who = "a block"
             self.info["warnings"].append(
                 f"{who}: zero crossings keep repeating near t = {t:.6g} (the system chatters along a "
                 "discontinuity); zero-crossing detection was turned off for this block"
@@ -383,11 +391,15 @@ def _simulate_compiled(
     log.start_pacing(opts.pacing, opts.t_start)
     t0, tf = opts.t_start, opts.t_final
     zc_info: dict[str, Any] = {"count": 0, "warnings": []}
-    if opts.is_fixed_step:
-        h, n_major, stopped = _run_fixed(model, opts, t0, tf, log, progress, should_stop)
-    else:
-        h = None
-        n_major, stopped = _run_variable(model, opts, t0, tf, log, progress, should_stop, zc_info)
+    try:
+        if opts.is_fixed_step:
+            h, n_major, stopped = _run_fixed(model, opts, t0, tf, log, progress, should_stop)
+        else:
+            h = None
+            n_major, stopped = _run_variable(model, opts, t0, tf, log, progress, should_stop, zc_info)
+    finally:
+        for b in model.blocks:  # never leave a frozen branch behind (e.g. when a block raised an error)
+            b.mode = None
     loop_notes = [
         "algebraic loop solved by iteration: "
         + " -> ".join(model.names[m] for m in members)
@@ -425,6 +437,13 @@ def _run_fixed(
                     f"fixed step {h:g} does not divide the sample time {name} {v:g}; "
                     "choose a step that is an integer fraction of every discrete sample time"
                 )
+        n = (t0 - r.offset) / h
+        if abs(n - round(n)) > 1e-6:  # the grid t0 + k*h would never meet the hits offset + j*period
+            raise SimulationError(
+                f"the start time {t0:g} is not on the fixed-step grid of the sample time {r}: with step {h:g} the "
+                "discrete blocks would never run; choose a start time that is a multiple of the step (plus the "
+                "sample time offset)"
+            )
     step_fn = FIXED_STEP_METHODS[opts.method]
     sched = _RateScheduler(model.rates, t0)
     n_steps = math.ceil((tf - t0) / h - 1e-9)
@@ -474,7 +493,10 @@ def _run_variable(
     bp_iter = 0
     # A model where everything is discrete or constant only needs to run at its sample hits.
     purely_discrete = bool(model.rates) and all(k is not Kind.CONTINUOUS for k in model.kinds)
-    zc = _ZeroCrossings(model, span, zc_info) if (opts.zero_crossing and model.has_zero_crossings) else None
+    zc = _ZeroCrossings(model, span, zc_info, t0) if (opts.zero_crossing and model.has_zero_crossings) else None
+    # Continuous enable/trigger signals are located as zero crossings; without zero-crossing detection the major
+    # steps are at most max_step apart, so the gates are decided at least that often.
+    cap_gates = zc is None and model.has_gate_signals
     x = model.xc0.copy()
     t = t0
     first = True
@@ -484,7 +506,10 @@ def _run_variable(
         hits = sched.hits(t)
         if zc is not None:
             zc.unfreeze()
+            if first or after_event:  # decide the gates by the side their signals move to
+                model.probe_gates(t, x, 1e-8 * max(span, 1e-12))
         model.eval_outputs(t, x, hits, init=first)
+        model._gate_probe = None
         first = False
         x, jumped = model.apply_major_step(t, x, probe=1e-8 * span if after_event else None)
         if jumped:  # e.g. an integrator reset: the solver restarts from the new state below
@@ -515,6 +540,8 @@ def _run_variable(
             bp_iter += 1
         next_bp = breakpoints[bp_iter] if bp_iter < len(breakpoints) else math.inf
         t_next = min(sched.next_time(), next_bp, tf)
+        if cap_gates:
+            t_next = min(t_next, t + max_step)
         if x.size == 0 and zc is None:
             t = t_next if purely_discrete else min(t_next, t + max_step)
             continue

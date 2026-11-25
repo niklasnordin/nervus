@@ -103,6 +103,11 @@ class PortItem(QGraphicsItem):
         return self.mapToScene(QPointF(sign * dx * PORT_SIZE / 2, sign * dy * PORT_SIZE / 2))
 
 
+def block_width(block: Block) -> float:
+    """The width a block is drawn with on the canvas (for auto layout)."""
+    return BlockItem(block).size[0]
+
+
 class BlockItem(QGraphicsItem):
     def __init__(self, block: Block) -> None:
         super().__init__()
@@ -114,6 +119,8 @@ class BlockItem(QGraphicsItem):
         self.out_ports: list[PortItem] = []
         self.phys_ports: list[PhysicalPortItem] = []
         self._w, self._h = MIN_W, MIN_H
+        self.preview_size: list[float] | None = None
+        """The size shown while the user drags the resize grip; committed through the controller on release."""
         self.setFlags(
             QGraphicsItem.GraphicsItemFlag.ItemIsMovable
             | QGraphicsItem.GraphicsItemFlag.ItemIsSelectable
@@ -154,7 +161,7 @@ class BlockItem(QGraphicsItem):
         else:
             self._w = max(MIN_W, text_w)
             self._h = max(MIN_H, snap(max(n * PORT_PITCH, len(lines) * 16 + 16)))
-        size = self.block.meta.get("size")
+        size = self.preview_size if self.preview_size is not None else self.block.meta.get("size")
         if isinstance(size, list | tuple) and len(size) == 2:  # resized by the user: at least the minimum
             self._w, self._h = max(self._w, snap(float(size[0]))), max(self._h, snap(float(size[1])))
         self._w, self._h = snap_up2(self._w), snap_up2(self._h)

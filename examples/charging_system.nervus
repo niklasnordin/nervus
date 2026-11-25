@@ -572,7 +572,7 @@
   "tests": [
     {
       "name": "energy management protects the battery",
-      "description": "After 8 s in the traffic jam the battery is no longer discharged by more than 5 A, and it charges when driving",
+      "description": "From 8.5 s into the traffic jam (loads shed at 8 s) the battery is no longer discharged by more than 5 A, and it charges when driving",
       "stop_time": 480.0,
       "inputs": {},
       "checks": [
@@ -580,7 +580,7 @@
           "kind": "bounds",
           "signal": "battery_charging",
           "lower": -5.0,
-          "t_from": 8.0,
+          "t_from": 8.5,
           "t_to": 240.0
         },
         {

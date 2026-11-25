@@ -38,9 +38,14 @@ all of them.
 
 ## The editor
 
-`uv run nervus` starts the desktop editor. To learn it, follow
-the tutorial [Your first model](tutorials/first-model.md), which builds a cruise control step by step; the
-[editor guide](editor.md) lists everything it can do. The rest of this page builds a model in Python.
+`uv run nervus` starts the desktop editor. It opens with a **welcome window**: build your first model with the
+tutorial beside it, take a one-minute **tour** of the editor, open a beginner example together with its
+tutorial, or pick a recent model. **Help ▸ Welcome** brings the window back, and **Help ▸ Editor Tour** repeats
+the tour; untick *Show this window at startup* to start on an empty model instead.
+
+To learn the editor, follow the tutorial [Your first model](tutorials/first-model.md), which builds a cruise
+control step by step; the [editor guide](editor.md) lists everything it can do. The rest of this page builds a
+model in Python, and [Scripting and testing models from Python](tutorials/python-scripting.md) goes further.
 
 ## Your first model
 
@@ -180,3 +185,7 @@ The [`examples/`](https://github.com/ikjbi/nervus/tree/main/examples) folder has
   model (`fmi_plant.nervus`). See the [tutorial](tutorials/fmi.md).
 - `obd_ecu.py`: an engine ECU with diagnostic monitors (misfire, lean) that answers real OBD-II tools while it
   runs. See [OBD-II](obd.md).
+- `scripting.py`: the cruise control driven from Python: parameters, sweeps, test cases, a model built in code.
+  See the [tutorial](tutorials/python-scripting.md).
+- `discrete_control.py`: one PI loop run continuously and as a sampled ECU task, and a signal that aliases
+  (`discrete_control.nervus`, `aliasing.nervus`). See the [tutorial](tutorials/discrete-control.md).

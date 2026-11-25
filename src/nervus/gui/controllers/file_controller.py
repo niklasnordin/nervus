@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QSettings, Signal
@@ -62,7 +63,7 @@ class FileController(QObject):
         if not p.suffix:
             p = p.with_suffix(FILE_EXTENSION)
         if self.model.root.name in ("", "untitled"):
-            self.model.root.name = p.stem
+            self.model.set_name(p.stem)
         try:
             p = save(self.model.root, p)
         except OSError as exc:
@@ -72,6 +73,43 @@ class FileController(QObject):
         self.editor.undo_stack.setClean()
         self._add_recent(p)
         self.saved.emit(p)
+        return True
+
+    # ------------------------------------------------------------------ other tools' files
+
+    def import_simulink(self, path: str | Path) -> Diagram | None:
+        """Read a Simulink .slx model and show it as a new, unsaved model (``meta["simulink_report"]`` lists what
+        was not translated)."""
+        from nervus.simulink import read_slx
+
+        return self._import(read_slx, path)
+
+    def import_spice(self, path: str | Path) -> Diagram | None:
+        """Read a SPICE netlist and show it as a new, unsaved model (``meta["spice_skipped"]``: elements left out)."""
+        from nervus.spice import read_netlist
+
+        return self._import(read_netlist, path)
+
+    def _import(self, read: Callable[[str | Path], Diagram], path: str | Path) -> Diagram | None:
+        try:
+            diagram = read(path)
+        except (OSError, NervusError) as exc:
+            self.errorOccurred.emit(f"Cannot read {path}:\n{exc}")
+            return None
+        # Like opening a file, this replaces the whole model, so the undo history (edits of the previous model)
+        # is reset on purpose: undoing past the import would edit a model that is no longer shown.
+        self.model.set_diagram(diagram)
+        return diagram
+
+    def export_spice(self, path: str | Path) -> bool:
+        """Write the circuit of the model as a SPICE netlist."""
+        from nervus.spice import write_netlist
+
+        try:
+            write_netlist(self.model.root, path)
+        except (OSError, NervusError) as exc:
+            self.errorOccurred.emit(f"Could not write {Path(path).name}:\n{exc}")
+            return False
         return True
 
     # ------------------------------------------------------------------ recent files

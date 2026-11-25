@@ -79,3 +79,51 @@ def test_fmu_block_replaces_the_subsystem(tmp_path: Path) -> None:
     with pytest.raises(Exception, match="no parameter"):
         block.set_param("parameters", "nonsense = 1")
         block.validate_params()
+
+
+def test_fmu_with_integer_and_fixed_point_interface(tmp_path: Path) -> None:
+    """Regression: the FMU read and wrote int16/fixed-point fields as doubles (wrong values, corrupted memory)."""
+    from nervus import Diagram
+    from nervus.blocks import Gain, Inport, Outport, ZeroOrderHold
+    from nervus.codegen.fmu import export_fmu
+
+    d = Diagram("tf")
+    u = d.add(Inport(port=1, output_type="int16"), name="u")
+    t = d.add(Inport(port=2, output_type="fixdt(0, 8, 0.5, -40)"), name="temp")
+    g = d.add(Gain(gain=2.0, output_type="int16"), name="g")
+    d.chain(u, d.add(ZeroOrderHold(sample_time=0.01), name="z"), g)
+    d.connect(g, d.add(Outport(port=1), name="y"))
+    d.chain(t, d.add(ZeroOrderHold(sample_time=0.01), name="zt"), d.add(Outport(port=2), name="temp_out"))
+    fmu = export_fmu(d, tmp_path / "tf.fmu")
+    assert validate_fmu(str(fmu)) == []
+    sig = np.array([(0.0, 100.0, 21.3), (0.01, 40000.0, -50.0), (0.02, -7.0, 300.0)],
+                   dtype=[("time", float), ("u", float), ("temp", float)])  # fmt: skip
+    r = simulate_fmu(str(fmu), stop_time=0.03, output_interval=0.01, input=sig)
+    # Each output comes after the step with the input before it: saturated at the int16 input and output, the
+    # temperature rounded to 0.5 and saturated to [-40, 87.5].
+    assert list(r["y"][1:4]) == [200.0, 32767.0, -14.0]
+    assert list(r["temp_out"][1:4]) == [21.5, -40.0, 87.5]
+
+
+def test_fmu_with_reusable_functions_loads(tmp_path: Path) -> None:
+    """Regression: the FMU's library left out the reusable subsystem functions (undefined symbols)."""
+    from nervus import Diagram
+    from nervus.blocks import Gain, Inport, Outport, Subsystem, UnitDelay, ZeroOrderHold
+    from nervus.codegen.fmu import export_fmu
+
+    def trim() -> Subsystem:
+        inner = Diagram()
+        inner.chain(inner.add(Inport(port=1), name="u"), inner.add(Gain(gain=3.0), name="g"),
+                    inner.add(UnitDelay(), name="ud"), inner.add(Outport(port=1), name="y"))  # fmt: skip
+        return Subsystem(system=inner, sample_time=0.01, function_name="trim")
+
+    d = Diagram("rf")
+    z = d.add(ZeroOrderHold(sample_time=0.01), name="z")
+    d.chain(d.add(Inport(port=1), name="u"), z)
+    for k in (1, 2):
+        s = d.add(trim(), name=f"s{k}")
+        d.chain(z, s, d.add(Outport(port=k), name=f"y{k}"))
+    fmu = export_fmu(d, tmp_path / "rf.fmu")
+    sig = np.array([(0.0, 1.0), (0.01, 2.0), (0.02, 3.0)], dtype=[("time", float), ("u", float)])
+    r = simulate_fmu(str(fmu), stop_time=0.03, output_interval=0.01, input=sig)
+    assert list(r["y1"]) == list(r["y2"]) == [0.0, 0.0, 3.0, 6.0]  # 3 u, one step late

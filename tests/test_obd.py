@@ -163,3 +163,43 @@ def test_elm_trouble_codes_and_freeze_frame() -> None:
     assert elm.trouble_codes() == ["P0133", "P0300"]
     assert elm.trouble_codes("pending") == []
     assert elm.freeze_frame(PIDS["rpm"]) == 1726.0
+
+
+@pytest.mark.parametrize(
+    ("text", "codes"),
+    [
+        # CAN multi-frame: the last frame is padded (00 or AA); the byte count says where the data ends.
+        ("00A\r0: 43 04 01 33 04 20\r1: 01 01 01 02 00 00 00", ["P0133", "P0420", "P0101", "P0102"]),
+        ("00A\r0: 43 04 01 33 04 20\r1: 01 01 01 02 AA AA AA", ["P0133", "P0420", "P0101", "P0102"]),
+        # Two ECUs (engine and transmission) answering the functional request.
+        ("43 01 01 33\r43 01 07 00", ["P0133", "P0700"]),
+        ("43 02 01 33 04 20\r43 00", ["P0133", "P0420"]),
+    ],
+)
+def test_parse_dtcs_multiframe_and_several_ecus(text: str, codes: list[str]) -> None:
+    assert parse_dtcs(text, 3) == codes
+
+
+def test_parse_vin_non_can() -> None:
+    # ISO 9141 / KWP2000: five lines "49 02 nn" + 4 bytes, the first one starting with three fill bytes.
+    vin = b"1G1JC5444R7252367"
+    data = b"\x00\x00\x00" + vin
+    lines = [bytes([0x49, 0x02, k + 1]) + data[4 * k : 4 * k + 4] for k in range(5)]
+    assert parse_vin("\r".join(" ".join(f"{b:02X}" for b in x) for x in lines)) == vin.decode()
+
+
+def test_parse_vin_drops_padding() -> None:
+    vin = "WVWZZZ1KZAW000001"
+    data = bytes([0x49, 0x02, 0x01]) + vin.encode() + b"\x55\x55"  # 0x55 ('U') padding in the last frame
+    chunks = [data[:6], data[6:13], data[13:]]
+    text = "014\r" + "\r".join(f"{k}: " + " ".join(f"{b:02X}" for b in c) for k, c in enumerate(chunks))
+    assert parse_vin(text) == vin
+
+
+def test_describe_dtc_generic_ranges() -> None:
+    assert describe_dtc("P2101") == "generic (SAE) powertrain code"
+    assert describe_dtc("P3400") == "generic (SAE) powertrain code"
+    assert describe_dtc("P3000") == "manufacturer-specific powertrain code"
+    assert describe_dtc("U2100") == "manufacturer-specific network code"
+    assert describe_dtc("B2123") == "manufacturer-specific body code"
+    assert describe_dtc("C0035") == "generic (SAE) chassis code"

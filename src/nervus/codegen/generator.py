@@ -39,11 +39,27 @@ class CodegenError(ModelError):
     """The model (or a block in it) cannot be turned into C code."""
 
 
+_C_RESERVED = frozenset({
+    "auto", "break", "case", "char", "const", "continue", "default", "do", "double", "else", "enum", "extern",
+    "float", "for", "goto", "if", "inline", "int", "long", "register", "restrict", "return", "short", "signed",
+    "sizeof", "static", "struct", "switch", "typedef", "union", "unsigned", "void", "volatile", "while", "_Bool",
+    "_Complex", "_Imaginary", "bool", "true", "false", "NULL", "INFINITY", "NAN", "HUGE_VAL", "HUGE_VALF",
+    "HUGE_VALL", "FP_NAN", "FP_INFINITE", "FP_ZERO", "FP_SUBNORMAL", "FP_NORMAL", "FP_FAST_FMA", "FP_ILOGB0",
+    "FP_ILOGBNAN", "MATH_ERRNO", "MATH_ERREXCEPT", "math_errhandling", "real_T", "real32_T", "boolean_T", "int8_T",
+    "uint8_T", "int16_T", "uint16_T", "int32_T", "uint32_T", "int64_T", "uint64_T",
+})  # fmt: skip
+"""C keywords, and names that the generated code's headers (``stdint.h``, ``math.h``, the type aliases) define."""
+_STDINT_MACRO = re.compile(r"U?INT(?:_LEAST|_FAST)?(?:8|16|32|64|MAX|PTR)_(?:MIN|MAX|C)|SIZE_MAX|PTRDIFF_(?:MIN|MAX)")
+
+
 def c_identifier(name: str) -> str:
-    """Turn a block path like ``ECU/throttle pi`` into a valid C identifier ``ECU_throttle_pi``."""
+    """Turn a block path like ``ECU/throttle pi`` into a valid C identifier ``ECU_throttle_pi``. A name that C
+    keeps for itself (``switch``, ``double``, ``NAN``, ``_Reserved``) gets a trailing or leading mark."""
     s = re.sub(r"[^0-9A-Za-z_]", "_", name)
-    if not s or s[0].isdigit():
+    if not s or s[0].isdigit() or (s[0] == "_" and (len(s) == 1 or s[1] == "_" or s[1].isupper())):
         s = "b_" + s
+    if s in _C_RESERVED or _STDINT_MACRO.fullmatch(s):
+        s += "_"
     return s
 
 
@@ -145,7 +161,7 @@ class Emitter:
                     (self.path,),
                 )
         else:
-            fname = f"{self.cname}_{pname}"
+            fname = self.gen.block_field(f"{self.cname}_{pname}", (self.i, pname))
             comment = f"{self.path}: {pname}" + (f" = {expr}" if expr else "")
         if fname in self.gen.global_names():
             fname += "_prm"  # e.g. parameter P of a block named like the model: not the same name as <model>_P
@@ -157,7 +173,8 @@ class Emitter:
         calibration field named after the variable, or a per-instance field for a mask parameter. Returns the
         C expression of its (physical) value."""
         if self._masked(name) or name not in self.gen.namespace:
-            fname, comment, dtype, const = f"{self.cname}_{name}", f"{self.path}: {name}", DOUBLE, False
+            fname = self.gen.block_field(f"{self.cname}_{name}", (self.i, name))
+            comment, dtype, const = f"{self.path}: {name}", DOUBLE, False
         else:
             var = self.gen.model.diagram.root.workspace.variable(name)
             fname, comment = c_identifier(name), f"workspace variable {name}"
@@ -194,7 +211,7 @@ class Emitter:
 
     def state(self, sname: str, init: Iterable[float], comment: str = "", dtype: DataType = DOUBLE) -> str:
         values = [float(v) for v in np.atleast_1d(np.asarray(list(init), dtype=float))]
-        fname = f"{self.cname}_{sname}"
+        fname = self.gen.block_field(f"{self.cname}_{sname}", (self.i, sname))
         self.gen.states[fname] = _Field(fname, max(1, len(values)), values or [0.0], comment or self.path, dtype)
         return f"{self.gen.ref('DW')}.{fname}"
 
@@ -285,6 +302,8 @@ class GeneratedCode:
     """Generated with integer arithmetic only (see :mod:`nervus.codegen.integer`)."""
     extra_sources: list[str] = field(default_factory=list)
     """Further C files of the ECU code: the reusable functions of subsystems (``<function>.c`` and ``.h``)."""
+    io_types: dict[str, DataType] = field(default_factory=dict)
+    """Data type of each input and output field (missing: ``double``)."""
 
     @property
     def c_files(self) -> dict[str, str]:
@@ -323,24 +342,44 @@ class CGenerator:
         self.extra_files: dict[str, str] = {}
         """Code that templates add to the model's files (reusable subsystem functions and their instances)."""
         self.namespace = model.diagram.root.workspace.namespace()  # shared calibration parameters
-        self.cnames = self._unique_cnames(model.names)
+        self.cnames = self._unique_cnames(model.names, [len(ws) for ws in model.out_widths])
+        self._field_owner: dict[str, tuple[int, str]] = {}
+        """Owner (block index, name) of every per-block parameter and state field."""
         self.params: dict[str, _Field] = {}
         self.states: dict[str, _Field] = {}
         self.quantizers: dict[str, str] = {}  # C function name -> definition
 
     @staticmethod
-    def _unique_cnames(names: list[str]) -> list[str]:
-        seen: dict[str, int] = {}
+    def _unique_cnames(names: list[str], n_outputs: list[int]) -> list[str]:
+        """C names of the blocks, such that their signal fields (``<name>``, or ``<name>_o<port>`` for several
+        outputs) are all different, also from the names other blocks have before they are made unique."""
+        bases = [c_identifier(n) for n in names]
+        taken = set(bases)  # a renamed block must not take another block's own name
+
+        def fields(c: str, n: int) -> list[str]:
+            return [c] if n <= 1 else [f"{c}_o{p}" for p in range(n)]
+
+        used: set[str] = set()
         out = []
-        for n in names:
-            c = c_identifier(n)
-            if c in seen:
-                seen[c] += 1
-                c = f"{c}_{seen[c]}"
-            else:
-                seen[c] = 0
+        for base, n in zip(bases, n_outputs, strict=True):
+            c, k = base, 0
+            while used & set(fields(c, n)) or (c != base and c in taken):
+                k += 1
+                c = f"{base}_{k}"
+            used |= set(fields(c, n))
             out.append(c)
         return out
+
+    def block_field(self, name: str, owner: tuple[int, str]) -> str:
+        """A parameter or state field of one block (``owner`` = block index, parameter or state name): ``name``,
+        unless another block's field or a workspace variable (a shared calibration field) has it already."""
+        variables = {c_identifier(v) for v in self.namespace}
+        fname, k = name, 0
+        while (self._field_owner.get(fname, owner) != owner) or fname in variables:
+            k += 1
+            fname = f"{name}_{k}"
+        self._field_owner[fname] = owner
+        return fname
 
     def _gate(self, i: int, code: BlockCode, block_states: list[str]) -> None:
         """Wrap a block of an enabled and/or triggered subsystem: run only while the enable is > 0 and the
@@ -525,6 +564,16 @@ class CGenerator:
         outputs.sort(key=lambda x: x[1].params["port"])
         in_fields = [(c_identifier(m.names[i]), m.out_widths[i][0]) for i, _ in inputs]
         out_fields = [(c_identifier(m.names[i]), m.in_widths[i][0]) for i, _ in outputs]
+        for kind, ports, fields in (("In", inputs, in_fields), ("Out", outputs, out_fields)):
+            seen: dict[str, str] = {}
+            for (i, _b), (fname, _w) in zip(ports, fields, strict=True):
+                if fname in seen:
+                    raise CodegenError(
+                        f"the {kind} blocks {seen[fname]} and {m.names[i]} both become the C field {fname}; "
+                        "rename one of them",
+                        (seen[fname], m.names[i]),
+                    )
+                seen[fname] = m.names[i]
         self.io_types = {c_identifier(m.names[i]): m.out_types[i][0] for i, _ in inputs}
         for i, _ in outputs:
             s, p = m.inputs[i][0]
@@ -565,6 +614,7 @@ class CGenerator:
             tunables=[(f.name, f.size, list(f.init), f.dtype.c_type, f.comment) for f in self.param_fields()],
             extra_sources=sorted(f for f in self.extra_files if f.endswith((".c", ".h"))),
             integer_only=self.integer_only,
+            io_types=dict(self.io_types),
         )
 
     def param_initializer(self) -> str:
@@ -1134,7 +1184,7 @@ class CGenerator:
             return [f"        memcpy({pfx}_U.{n}, v, sizeof({pfx}_U.{n}));"]
         q = self.quantizer(dtype)
         to_stored = (
-            f"({dtype.c_type})(({q}(v[i]) - {c_float(dtype.bias)}) / {c_float(dtype.slope)})"
+            f"({dtype.c_type})round(({q}(v[i]) - {c_float(dtype.bias)}) / {c_float(dtype.slope)})"
             if dtype.is_fixed
             else f"({dtype.c_type}){q}(v[i])"
         )

@@ -163,7 +163,11 @@ class ConnectCommand(Command):
         self._replaced = dst.diagram.driver(dst, dp)
         if self._replaced is not None:
             self.model.remove_connection(self._replaced)
-        self._conn = self.model.add_connection(src, sp, dst, dp)
+        # On redo, put back the same connection: later commands (routing the wire) hold a reference to it.
+        if self._conn is None:
+            self._conn = self.model.add_connection(src, sp, dst, dp)
+        else:
+            self.model.restore_connection(self._conn)
 
     def revert(self) -> None:
         assert self._conn is not None
@@ -181,7 +185,10 @@ class LinkCommand(Command):
         self._link: Link | None = None
 
     def do(self) -> None:
-        self._link = self.model.add_link(*self.args)
+        if self._link is None:
+            self._link = self.model.add_link(*self.args)
+        else:  # redo: the same link, see ConnectCommand
+            self.model.restore_link(self._link)
 
     def revert(self) -> None:
         assert self._link is not None
@@ -354,13 +361,7 @@ class SetMaskCommand(Command):
         self.new = new
 
     def _apply(self, state: dict[str, Any]) -> None:
-        from nervus.core.workspace import Workspace
-
-        sub = self.subsystem
-        sub.mask = Workspace.from_list(list(state["variables"]))  # type: ignore[attr-defined]
-        sub.mask_icon = str(state["icon"])  # type: ignore[attr-defined]
-        sub.mask_description = str(state["description"])  # type: ignore[attr-defined]
-        self.model.mask_changed(sub)
+        self.model.set_mask(self.subsystem, list(state["variables"]), str(state["icon"]), str(state["description"]))
 
     def do(self) -> None:
         self._apply(self.new)
@@ -398,17 +399,7 @@ class SetVariantsCommand(Command):
         self.new = new
 
     def _apply(self, state: dict[str, Any]) -> None:
-        sub = self.subsystem
-        sub.variants = dict(state["variants"])  # type: ignore[attr-defined]
-        if sub.variants:  # type: ignore[attr-defined]
-            for v in sub.variants.values():  # type: ignore[attr-defined]
-                v.system.parent = sub
-            sub.activate(state["active"])  # type: ignore[attr-defined]
-        else:
-            sub.active_variant = ""  # type: ignore[attr-defined]
-            sub.system = state["system"]  # type: ignore[attr-defined]
-            sub.system.parent = sub  # type: ignore[attr-defined]
-        self.model.variants_changed(sub)
+        self.model.set_variants(self.subsystem, state["variants"], state["active"], state["system"])
 
     def do(self) -> None:
         self._apply(self.new)
@@ -426,8 +417,7 @@ class SetLinkCommand(Command):
         self.old, self.new = getattr(subsystem, "library_link", None), link
 
     def _apply(self, link: Any) -> None:
-        self.subsystem.library_link = link  # type: ignore[attr-defined]
-        self.model.paramsChanged.emit(self.subsystem)
+        self.model.set_library_link(self.subsystem, link)
 
     def do(self) -> None:
         self._apply(self.new)
@@ -449,12 +439,7 @@ class SetMetaCommand(Command):
     @staticmethod
     def _apply(model: DiagramModel, changes: list[tuple[Block, dict[str, Any]]]) -> None:
         for b, c in changes:
-            for k, v in c.items():
-                if v is None or v is False:
-                    b.meta.pop(k, None)
-                else:
-                    b.meta[k] = v
-            model.paramsChanged.emit(b)
+            model.set_meta(b, c)
 
     def do(self) -> None:
         self._apply(self.model, self.new)
@@ -490,11 +475,7 @@ class FlipBlocksCommand(Command):
 
     def _toggle(self) -> None:
         for b in self.blocks:
-            if b.meta.get("flipped"):
-                b.meta.pop("flipped")
-            else:
-                b.meta["flipped"] = True
-            self.model.paramsChanged.emit(b)
+            self.model.set_meta(b, {"flipped": not b.meta.get("flipped")})
 
     def do(self) -> None:
         self._toggle()
@@ -503,13 +484,13 @@ class FlipBlocksCommand(Command):
         self._toggle()
 
 
-class ScriptCommand(Command):
-    """Changes made by a script in the console: the model before and after, as model-file data. The first
-    ``redo`` keeps the edited objects (the script already changed them); undo and later redos rebuild the model
-    from the snapshots."""
+class SnapshotCommand(Command):
+    """A change already made to the model by code that works on the core objects (a console script, refreshing
+    library links): the model before and after, as model-file data. The first ``redo`` keeps the edited objects
+    (they already changed); undo and later redos rebuild the model from the snapshots."""
 
     def __init__(self, model: DiagramModel, before: dict[str, Any], after: dict[str, Any], text: str) -> None:
-        super().__init__(f"Script: {text[:40]}")
+        super().__init__(text)
         self.model, self.before, self.after = model, before, after
         self._first = True
 
@@ -529,6 +510,13 @@ class ScriptCommand(Command):
 
     def revert(self) -> None:
         self._restore(self.before)
+
+
+class ScriptCommand(SnapshotCommand):
+    """Changes made by a script in the console."""
+
+    def __init__(self, model: DiagramModel, before: dict[str, Any], after: dict[str, Any], text: str) -> None:
+        super().__init__(model, before, after, f"Script: {text[:40]}")
 
 
 class SetSignalObjectCommand(Command):

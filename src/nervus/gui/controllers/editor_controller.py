@@ -37,6 +37,7 @@ from nervus.gui.controllers.commands import (
     SetVariableCommand,
     SetVariantsCommand,
     SetWirePointsCommand,
+    SnapshotCommand,
 )
 from nervus.gui.models.diagram_model import DiagramModel, block_position
 
@@ -230,7 +231,7 @@ class EditorController(QObject):
         d = self.model.diagram
         old = {id(b): block_position(b) for b in d.blocks}
         saved = {id(b): b.meta.get("position") for b in d.blocks}
-        auto_layout(d, only_missing=False, width_of=block_width)
+        auto_layout(d, only_missing=False, width_of=self.model.width_of)
         moves = [(b, old[id(b)], block_position(b)) for b in d.blocks]
         for b in d.blocks:  # restore, then apply through an undoable command
             if saved[id(b)] is None:
@@ -257,6 +258,23 @@ class EditorController(QObject):
             name = f"{component}{k}"
         block.name = name
         return block
+
+    def refresh_links(self) -> list[str] | None:
+        """Update every linked subsystem from its library (one undo step). Returns the warnings (e.g. a missing
+        library, whose subsystems keep the copy saved in the model), or ``None`` if editing is disabled."""
+        from nervus.io.model_file import to_dict
+        from nervus.library import refresh_links
+
+        if not self._editing_enabled:
+            self.errorOccurred.emit("The diagram cannot be edited while a simulation is running.")
+            return None
+        root = self.model.root
+        before = to_dict(root)
+        warnings = refresh_links(root)
+        after = to_dict(root)
+        if json.dumps(before, sort_keys=True, default=str) != json.dumps(after, sort_keys=True, default=str):
+            self._push(SnapshotCommand(self.model, before, after, "Refresh library links"))
+        return warnings
 
     def save_to_library(self, subsystem: Block, library: str | Path, link: bool = True) -> bool:
         """Add ``subsystem`` to a library file as a component and (by default) link it to that component."""
@@ -661,13 +679,6 @@ class EditorController(QObject):
         finally:
             self.undo_stack.endMacro()
         return list(created.values())
-
-
-def block_width(block: Block) -> float:
-    """The width a block is drawn with on the canvas (for auto layout)."""
-    from nervus.gui.views.items import BlockItem
-
-    return BlockItem(block).size[0]
 
 
 def _same(a: Any, b: Any) -> bool:

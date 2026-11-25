@@ -47,3 +47,11 @@ def test_every_example_is_documented() -> None:
         assert model.name in getting_started, f"{model.name} missing in the in-app Getting started page"
         script = model.with_suffix(".py").name
         assert script in docs or model.stem in docs, f"{model.name} missing in docs/getting-started.md"
+
+
+def test_latex_to_text_replaces_whole_commands_only() -> None:
+    from nervus.help import latex_to_text
+
+    assert latex_to_text(r"i = I_s\left(e^{v} - 1\right)") == "i = I_s(e^{v} - 1)"
+    assert latex_to_text(r"a \le b \leq c \ge d \geq e") == "a ≤ b ≤ c ≥ d ≥ e"
+    assert latex_to_text(r"\dot{x} \dots") == "x\u0307 …"

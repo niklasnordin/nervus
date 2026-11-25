@@ -6,7 +6,7 @@ import threading
 import time
 import traceback
 
-from PySide6.QtCore import QObject, QThread, Signal, Slot
+from PySide6.QtCore import QObject, Qt, QThread, Signal, Slot
 
 from nervus.core import ModelError, NervusError, SimulationSettings
 from nervus.gui.controllers.editor_controller import EditorController
@@ -99,8 +99,9 @@ class SimulationController(QObject):
         worker.partial.connect(self.sim_model.set_live_result)
         worker.finished.connect(self._on_finished)
         worker.failed.connect(self._on_failed)
-        worker.finished.connect(thread.quit)
-        worker.failed.connect(thread.quit)
+        # Direct: quit() is thread-safe, and a queued call would never run while the GUI thread waits in wait().
+        worker.finished.connect(thread.quit, Qt.ConnectionType.DirectConnection)
+        worker.failed.connect(thread.quit, Qt.ConnectionType.DirectConnection)
         thread.finished.connect(worker.deleteLater)
         self._thread, self._worker = thread, worker
         thread.start()

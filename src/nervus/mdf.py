@@ -56,31 +56,55 @@ def write_mdf(result: SimResult, path: str | Path, names: Iterable[str] | None =
     return p
 
 
+def _channel_index(mdf: Any) -> dict[str, tuple[int, int, str]]:
+    """Channel name -> (group, index, unit), time channels left out. A name that occurs in several groups (a
+    CAN log's ``CRC`` or ``Counter`` in every message) is told apart by its group: ``CRC@1``, ``CRC@4``, ... (and
+    ``CRC@1.3``, the channel index, if it occurs twice in one group)."""
+    places: dict[str, list[tuple[int, int, str]]] = {}
+    for g, group in enumerate(mdf.groups):
+        for i, ch in enumerate(group.channels):
+            if ch.channel_type != 2:  # 2 = master (time) channel
+                places.setdefault(ch.name, []).append((g, i, getattr(ch, "unit", "") or ""))
+    out: dict[str, tuple[int, int, str]] = {}
+    for name, found in places.items():
+        if len(found) == 1:
+            out[name] = found[0]
+            continue
+        groups = [g for g, _i, _u in found]
+        for g, i, unit in found:
+            out[f"{name}@{g}" if groups.count(g) == 1 else f"{name}@{g}.{i}"] = (g, i, unit)
+    return out
+
+
 def mdf_channels(path: str | Path) -> dict[str, str]:
-    """The channel names in a file, with their units (time channels left out)."""
+    """The channel names in a file, with their units (time channels left out). Names that occur in several
+    groups get the group number: ``CRC@1``, ``CRC@4`` (these names also work with :func:`read_mdf`)."""
     asammdf = _asammdf()
     with asammdf.MDF(str(path)) as mdf:
-        out = {}
-        for group in mdf.groups:
-            for ch in group.channels:
-                if ch.channel_type != 2 and ch.name not in out:  # 2 = master (time) channel
-                    out[ch.name] = getattr(ch, "unit", "") or ""
-        return out
+        return {name: unit for name, (_g, _i, unit) in _channel_index(mdf).items()}
 
 
 def read_mdf(path: str | Path, channels: Iterable[str] | None = None, raster: float | None = None) -> SimResult:
     """Read channels (all numeric ones if ``None``) into a :class:`SimResult` on one time base (see the module
-    docs). Each channel is a signal named like the channel."""
+    docs). Each channel is a signal named like the channel in :func:`mdf_channels` (``CRC@1`` for a name that
+    occurs in several groups)."""
     asammdf = _asammdf()
     with asammdf.MDF(str(path)) as mdf:
-        wanted = list(channels) if channels is not None else list(mdf_channels(path))
+        index = _channel_index(mdf)
+        wanted = list(channels) if channels is not None else list(index)
         found = {}
         for name in wanted:
             try:
-                sig = mdf.get(name)
+                if name in index:
+                    g, i, _unit = index[name]
+                    sig = mdf.get(group=g, index=i)
+                else:
+                    sig = mdf.get(name)
             except Exception as exc:  # asammdf raises MdfException for missing or ambiguous names
                 if channels is not None:
-                    raise NervusError(f"{Path(path).name}: no channel {name!r} ({exc})") from exc
+                    alternatives = [k for k in index if k.startswith(f"{name}@")]
+                    hint = f"; it occurs in several groups: {', '.join(alternatives)}" if alternatives else ""
+                    raise NervusError(f"{Path(path).name}: no channel {name!r} ({exc}){hint}") from exc
                 continue
             values = np.asarray(sig.samples)
             if values.dtype.kind not in "biuf" or values.ndim != 1 or len(sig.timestamps) == 0:

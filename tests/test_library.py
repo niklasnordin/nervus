@@ -69,3 +69,14 @@ def test_unknown_component_and_refresh(tmp_path: Path) -> None:
     d.block("a").system.block("g").set_param("gain", 99.0)  # local edit is overwritten by a refresh
     assert refresh_links(d, tmp_path) == []
     assert d.block("a").system.block("g").expressions["gain"] == "K"
+
+
+def test_link_saved_on_windows_resolves(tmp_path: Path) -> None:
+    """A model saved on Windows stores the library path with backslashes; it must resolve on every system."""
+    from nervus.library import LibraryLink
+
+    (tmp_path / "libs").mkdir()
+    lib = save_to_library(component(), tmp_path / "libs" / "parts")
+    (tmp_path / "models").mkdir()
+    link = LibraryLink("..\\libs\\parts.nervlib", "scale")
+    assert link.resolve(tmp_path / "models") == lib.resolve()

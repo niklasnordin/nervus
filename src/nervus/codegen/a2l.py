@@ -2,7 +2,8 @@
 
 Every tunable parameter of the generated code becomes a ``CHARACTERISTIC`` (scalar ``VALUE`` or array
 ``VAL_BLK``) and every block signal a ``MEASUREMENT``. Units, limits and descriptions come from the model
-workspace. All data are ``FLOAT64_IEEE`` (the generated code uses ``double``).
+workspace. The data types are those of the generated code (``FLOAT64_IEEE`` for ``double``; the stored integer types
+of integer-only code, with a linear conversion for fixed point).
 
 Addresses are only known after the ECU program is linked. ``generate_a2l`` writes placeholders relative to the
 struct symbols; :func:`fill_addresses` replaces them using the symbol table of the built binary (``nm``).
@@ -73,34 +74,53 @@ def generate_a2l(gen: CGenerator) -> str:
     except Exception:  # a name used twice: no named measurements
         named = {}
     dictionary = m.diagram.root.signals
+    # Integer-only code stores every signal as its stored integer (int16_T, uint8_T, ...); otherwise all are real_T.
+    signal_types = gen._signal_types() if gen.integer_only else {}
+    from nervus.codegen.generator import _C_SIZES
+
     for i, ws_out in enumerate(m.out_widths):
         for p, w in enumerate(ws_out):
             field = gen.signal_var(i, p).split(".", 1)[1]
+            dtype = signal_types.get(field)
+            c_type = dtype.c_type if dtype is not None else "real_T"
+            asam = _ASAM_TYPES.get(c_type, "FLOAT64_IEEE")
+            size = _C_SIZES.get(c_type, DOUBLE)
+            offset = -(-offset // size) * size  # the C compiler aligns each field to its size
             signal = named.get((m.names[i], p))
             obj = dictionary[signal] if signal is not None and signal in dictionary else None
             method, lo, hi, desc = "CM_IDENTICAL", "-1e12", "1e12", m.names[i]
+            if dtype is not None and not dtype.is_double:
+                lo, hi = _limit(dtype.min, -1e12), _limit(dtype.max, 1e12)
             if obj is not None:
-                lo, hi = _limit(obj.min, -1e12), _limit(obj.max, 1e12)
+                lo, hi = _limit(obj.min, float(lo)), _limit(obj.max, float(hi))
                 desc = (obj.description or m.names[i]).replace('"', "'")
-                if obj.unit:
-                    method = f"CM_{_ident(obj.unit) or 'unit'}"
-                    if method not in units:
-                        units.add(method)
-                        lines += [
-                            f'    /begin COMPU_METHOD {method} "unit {obj.unit}" IDENTICAL "%12.6" "{obj.unit}"',
-                            "    /end COMPU_METHOD",
-                        ]
+            if dtype is not None and dtype.kind == "fixed" and not dtype.is_integer:
+                unit = obj.unit if obj is not None else ""
+                method = f"CM_B_{_ident(field)}"  # the tool shows physical values: phys = slope * stored + bias
+                lines += [
+                    f'    /begin COMPU_METHOD {method} "{dtype.name}" LINEAR "%12.6" "{unit}"',
+                    f"      COEFFS_LINEAR {dtype.slope!r} {dtype.bias!r}",
+                    "    /end COMPU_METHOD",
+                ]
+            elif obj is not None and obj.unit:
+                method = f"CM_{_ident(obj.unit) or 'unit'}"
+                if method not in units:
+                    units.add(method)
+                    lines += [
+                        f'    /begin COMPU_METHOD {method} "unit {obj.unit}" IDENTICAL "%12.6" "{obj.unit}"',
+                        "    /end COMPU_METHOD",
+                    ]
             for k in range(w):
                 suffix = f"[{k}]" if w > 1 else ""
                 label = f"{signal}{suffix}" if signal is not None else f"{pfx}_B.{field}{suffix}"
                 lines += [
                     f'    /begin MEASUREMENT {label} "{desc}"',
-                    f"      FLOAT64_IEEE {method} 0 0 {lo} {hi}",
-                    f"      ECU_ADDRESS 0x0 /* @{pfx}_B+{offset + k * DOUBLE} */",
-                    f'      SYMBOL_LINK "{pfx}_B.{field}" {k * DOUBLE}',
+                    f"      {asam} {method} 0 0 {lo} {hi}",
+                    f"      ECU_ADDRESS 0x0 /* @{pfx}_B+{offset + k * size} */",
+                    f'      SYMBOL_LINK "{pfx}_B.{field}" {k * size}',
                     "    /end MEASUREMENT",
                 ]
-            offset += w * DOUBLE
+            offset += w * size
     lines += ["  /end MODULE", "/end PROJECT", ""]
     return "\n".join(lines)
 

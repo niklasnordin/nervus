@@ -58,6 +58,7 @@ nav:
           - Tutorials (app): app-help/tutorials.md
           - "Tutorial: Your first model: a cruise control": app-help/tutorial_first_model.md
           - "Tutorial: Reusable components with subsystems, masks and libraries": app-help/tutorial_component_libraries.md
+          - "Tutorial: Scripting and testing models from Python": app-help/tutorial_python_scripting.md
           - "Tutorial: Position control of a mass-spring-damper": app-help/tutorial_mass_spring_damper.md
           - "Tutorial: DC motor speed and position control": app-help/tutorial_dc_motor.md
           - "Tutorial: Level control of coupled water tanks": app-help/tutorial_coupled_tanks.md
@@ -84,6 +85,7 @@ nav:
           - "Tutorial: Live calibration over XCP": app-help/tutorial_xcp_calibration.md
           - "Tutorial: On-board diagnostics and trouble codes": app-help/tutorial_obd_diagnostics.md
           - "Tutorial: Sensor fault diagnosis and substitute values": app-help/tutorial_sensor_diagnostics.md
+          - "Tutorial: From continuous to discrete: sample times": app-help/tutorial_discrete_control.md
           - "Tutorial: From model to ECU C code": app-help/tutorial_model_to_code.md
           - "Tutorial: A sensor signal chain in fixed point": app-help/tutorial_fixed_point.md
           - "Tutorial: Exchanging models with FMI": app-help/tutorial_fmi.md
@@ -100,6 +102,7 @@ nav:
       - Getting started:
           - "Your first model: a cruise control": tutorials/first-model.md
           - "Reusable components with subsystems, masks and libraries": tutorials/component-libraries.md
+          - "Scripting and testing models from Python": tutorials/python-scripting.md
       - Control engineering:
           - Classic lab experiments:
               - "Position control of a mass-spring-damper": tutorials/mass-spring-damper.md
@@ -142,6 +145,7 @@ nav:
               - "On-board diagnostics and trouble codes": tutorials/obd-diagnostics.md
               - "Sensor fault diagnosis and substitute values": tutorials/sensor-diagnostics.md
           - From model to ECU code:
+              - "From continuous to discrete: sample times": tutorials/discrete-control.md
               - "From model to ECU C code": tutorials/model-to-code.md
               - "A sensor signal chain in fixed point": tutorials/fixed-point.md
               - "Exchanging models with FMI": tutorials/fmi.md
