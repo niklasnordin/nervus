@@ -953,6 +953,8 @@ def _state_chart(e: Emitter) -> BlockCode:
         body += process(k)
     # The first sample (no state active yet) enters the initial states, with its inputs, before processing.
     none_active = " && ".join(f"({act(k)} == 0.0)" for k in spec.top)
+    if len(spec.top) == 1:  # clang: "equality comparison with extraneous parentheses"
+        none_active = none_active[1:-1]
     start = [f"if ({none_active}) {{", *[f"    {x}" for x in enter_default(spec.initial)], "}"]
     lines = ["{", f"    real_T act0[{n}];", f"    int entered[{n}];", "    int i;"]
     if spec.events:

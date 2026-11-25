@@ -96,7 +96,8 @@ def test_codegen_uses_active_variant() -> None:
     d.chain(u, d.add(ZeroOrderHold(sample_time=0.01)), sub, d.add(Outport(port=1), name="y"))
     code = generate_c(d)
     assert any(n.startswith("engine/g") for n in code.model.names)
-    assert "3.0" in code.files["variants.c"] and "2.0" not in code.files["variants.c"]
+    body = code.files["variants.c"].split("*/", 1)[1]  # after the header, which names the Nervus version
+    assert "3.0" in body and "2.0" not in body
     if find_compiler() is not None:
         res = back_to_back(d, {"u": 1.0}, 5, tolerance=0.0)
         assert res.passed and res.c["y"][-1, 0] == 3.0

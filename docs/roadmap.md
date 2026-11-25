@@ -14,13 +14,12 @@ Block diagrams, physical models, state charts, test cases with coverage and MC/D
 C code generation (MISRA C, fixed point, integer-only code, reusable functions, FMI), an XCP slave in the model,
 A2L export, Simulink `.slx` import, 33 tutorials. [Changelog](https://github.com/ikjbi/nervus/blob/main/CHANGELOG.md).
 
-## 0.2: reach and polish
+## 0.2: reach (released)
 
-- **Standalone installers** for macOS, Windows and Linux (no Python needed).
+- **Standalone applications** for macOS, Windows and Linux (no Python needed), on every release page.
 - **Versioned documentation**: one site per release.
-- Simulink import: older `.mdl` files, and Stateflow charts as State Chart blocks.
-- **Faster simulation** for large models (compiled execution of the model).
-- What users report: bugs, missing blocks, unclear tutorials.
+- Simulink import of the older `.mdl` text format; coverage of the generated C code by the test cases; MC/DC for
+  state chart guards; Help ▸ About Nervus with the contributors.
 
 ## 0.3: real hardware
 
@@ -30,6 +29,9 @@ A2L export, Simulink `.slx` import, 33 tutorials. [Changelog](https://github.com
   with the simulation.
 - **Hardware-in-the-loop (HIL)**: the plant model in real time on the PC, talking CAN to a real ECU.
 - The XCP slave on the board, so the board can be measured and calibrated like a production ECU.
+- Simulink import of Stateflow charts as State Chart blocks.
+- **Faster simulation** for large models (compiled execution of the model).
+- What users report: bugs, missing blocks, unclear tutorials.
 
 ## 0.4 to 0.6: measurement and calibration (the first INCA part)
 
