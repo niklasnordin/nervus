@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | fixed-point data types (word length, fraction bits, resolution, range), an ADC model, quantization error, and the silent failure of a badly chosen range |
-| **Before this** | *From model to ECU C code*; read *Data types and fixed point* first |
+| **Before this** | [From model to ECU C code](tutorial_model_to_code.md); read [Data types and fixed point](datatypes.md) first |
 | **Level and time** | intermediate, about 30 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/fixed_point_sensor.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | ECU software, communication and diagnostics ▸ From model to ECU code (*all tutorials*) |
+| **Topic** | ECU software, communication and diagnostics ▸ From model to ECU code ([all tutorials](tutorials.md)) |
 
 Many ECU microcontrollers have no floating-point unit, or the code must be fast and deterministic, so signals are
 stored as **integers with a scale**. `examples/fixed_point_sensor.py` runs a manifold pressure sensor chain
@@ -60,9 +60,9 @@ Select the **scale_fix** block and change its *output_type* in Properties:
 | `fixdt(0, 16, 9)` | the range ends at 128 kPa: the signal is cut off there and the check never fires |
 | `fixdt(0, 16, 10)` | saturates at 64 kPa, as above |
 
-See *Data types and fixed point* for the rules (rounding, overflow, how types are inherited)
-and *the code-generation tutorial* for turning such a chain into C.
+See [Data types and fixed point](datatypes.md) for the rules (rounding, overflow, how types are inherited)
+and [the code-generation tutorial](tutorial_model_to_code.md) for turning such a chain into C.
 
 ## Next
 
-Next in this topic: *Exchanging models with FMI*. Or pick another one from the *tutorial overview*.
+Next in this topic: [Exchanging models with FMI](tutorial_fmi.md). Or pick another one from the [tutorial overview](tutorials.md).

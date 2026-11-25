@@ -5,7 +5,7 @@ model, a sensor model with filtering and diagnostics, or a standard PI controlle
 component once in its library, and every model that uses it gets the fix the next time it is opened.
 
 A library is an ordinary model file with the extension **`.nervlib`**. Each subsystem at its top level is
-one **component**. Components are usually masked (see *Subsystems*),
+one **component**. Components are usually masked (see [Subsystems](subsystems.md)),
 so each use can have its own parameter values.
 
 ## Create a library

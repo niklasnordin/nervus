@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | what the P, I and D terms do, natural frequency and damping ratio, steady-state error, actuator limits and anti-windup |
-| **Before this** | *Your first model: a cruise control* |
+| **Before this** | [Your first model: a cruise control](tutorial_first_model.md) |
 | **Level and time** | beginner, about 30 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/mass_spring_damper_pid.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Control engineering ▸ Classic lab experiments (*all tutorials*) |
+| **Topic** | Control engineering ▸ Classic lab experiments ([all tutorials](tutorials.md)) |
 
 `examples/mass_spring_damper_pid.py` is the first experiment of many control lab courses: a mass on a spring,
 pushed by a force actuator, and a PID controller that moves it to a reference position. You will design the
@@ -70,7 +70,7 @@ The PD loop's characteristic equation is $m s^2 + (c + K_d) s + (k + K_p) = 0$, 
 $s^2 + 8.5 s + 42 = 0$, with the poles $-4.25 \pm 4.9j$: $\omega_n = 6.5$ rad/s and $\zeta = 0.66$, as in step 2.
 For a systematic design open **Analysis ▸ Linear Analysis ▸ PID Tuning**, choose the block `pid` and a phase
 margin, and press **Tune**: it designs the gains from the plant the controller sees (see
-*Linear analysis*). Copy its gains into the workspace and compare its step response with
+[Linear analysis](analysis.md)). Copy its gains into the workspace and compare its step response with
 yours in the Data Inspector: a large phase margin gives a calm but slower response.
 
 ## Experiments
@@ -84,4 +84,4 @@ yours in the Data Inspector: a large phase margin gives a calm but slower respon
 
 ## Next
 
-Next in this topic: *DC motor speed and position control*. Or pick another one from the *tutorial overview*.
+Next in this topic: [DC motor speed and position control](tutorial_dc_motor.md). Or pick another one from the [tutorial overview](tutorials.md).

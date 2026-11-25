@@ -234,6 +234,11 @@ class PhysicalNetwork:
     one converges to the same solution within the Newton tolerance): the outputs and the derivatives at one time
     point use the same solution, solved once."""
 
+    last_u: Array | None = None
+    """The inputs of the last solve with real inputs: the outputs that depend on the states only are solved with
+    them, so that the solve for the other outputs at the same time point (same states, same inputs, which are
+    mostly held between controller samples) is the same solution, solved once."""
+
     def _pure(self) -> bool:
         if not hasattr(self, "_is_pure"):
             self._is_pure = not any(type(m.block).update_mode is not PhysicalBlock.update_mode for m in self.members)
@@ -313,7 +318,13 @@ class PhysicalNetwork:
             "a spring), or a current-source-like element is in series with nothing that can take its current"
         )
 
+    def state_outputs(self, x: Array) -> Array:
+        """The outputs at states ``x``; only those that do not depend on the inputs are valid."""
+        u = self.last_u if self.last_u is not None else np.zeros(self.n_inputs)
+        return self._outputs(x, u)
+
     def derivatives(self, x: Array, u: Array) -> Array:
+        self.last_u = u
         sol = self.solve(x, u)
         dx = np.zeros_like(x)
         for m in self.members:
@@ -322,6 +333,10 @@ class PhysicalNetwork:
         return dx
 
     def outputs(self, x: Array, u: Array) -> Array:
+        self.last_u = u
+        return self._outputs(x, u)
+
+    def _outputs(self, x: Array, u: Array) -> Array:
         sol = self.solve(x, u)
         y = np.zeros(self.n_outputs)
         for m in self.members:
@@ -356,6 +371,7 @@ class PhysicalNetwork:
                 except SimulationError:
                     continue  # an extreme probe that does not converge says nothing about the structure
         self._last = None
+        self.last_u = None
         self.instant_outputs = [k for k in range(self.n_outputs) if changed[k]]
 
 
@@ -394,7 +410,7 @@ class NetworkCore(Block):
         states = xc.copy() if xc.size else np.zeros(1)
         if not self.state_outputs:
             return [states]
-        y = self.network.outputs(xc, np.zeros(self.network.n_inputs))  # these outputs do not depend on u
+        y = self.network.state_outputs(xc)  # these outputs do not depend on u
         return [states, *[np.array([y[k]]) for k in self.state_outputs]]
 
     def derivatives(self, t: float, u: Sequence[Array], xc: Array, xd: Array) -> Array:

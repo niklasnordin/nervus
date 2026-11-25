@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | why petrol engines run at lambda = 1, closed-loop fuel control with a lambda sensor, short- and long-term fuel trims (as read over OBD-II), an ECU task in an atomic subsystem |
-| **Before this** | *Idle speed control* |
+| **Before this** | [Idle speed control](tutorial_idle.md) |
 | **Level and time** | intermediate, about 45 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/lambda_control.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Powertrain and engine control ▸ Engine management (*all tutorials*) |
+| **Topic** | Powertrain and engine control ▸ Engine management ([all tutorials](tutorials.md)) |
 
 This tutorial follows `examples/lambda_control.py`. It shows how a petrol engine's ECU keeps the air-fuel
 ratio at the value the catalytic converter needs, and what the **fuel trims** that you can read from your car
@@ -37,7 +37,7 @@ only in a narrow window around λ = 1, so the ECU controls λ to 1 at part load 
 - the exhaust gas needs $n_{exh}$ = 8 samples × 10 ms to reach the lambda sensor, and the sensor itself has a
   time constant $\tau$ = 0.1 s.
 
-**ECU**: the `ECU` block is an *atomic subsystem* with
+**ECU**: the `ECU` block is an [atomic subsystem](subsystems.md#atomic-subsystems-one-ecu-task) with
 `sample_time = Ts` (10 ms), the fuel task:
 
 $$ m_{fuel,cmd} = \frac{m_{air,MAF}}{14.7}\,(1 + STFT + LTFT), \qquad t_{inj} = \frac{m_{fuel,cmd}}{q_{inj}} + t_{dead} $$
@@ -94,4 +94,4 @@ during the tip-in. Generate C code for the `ECU` block (Code → Generate C) to 
 
 ## Next
 
-Next in this topic: *Ignition timing and knock control*. Or pick another one from the *tutorial overview*.
+Next in this topic: [Ignition timing and knock control](tutorial_ignition.md). Or pick another one from the [tutorial overview](tutorials.md).

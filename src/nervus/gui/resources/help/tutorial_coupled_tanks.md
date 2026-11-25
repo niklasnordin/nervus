@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | a nonlinear process, linearization at an operating point, PI design for a second-order process, gain scheduling, actuator limits |
-| **Before this** | *DC motor speed and position control* |
+| **Before this** | [DC motor speed and position control](tutorial_dc_motor.md) |
 | **Level and time** | intermediate, about 40 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/coupled_tanks.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Control engineering ▸ Classic lab experiments (*all tutorials*) |
+| **Topic** | Control engineering ▸ Classic lab experiments ([all tutorials](tutorials.md)) |
 
 `examples/coupled_tanks.py` is the process-control experiment of many lab courses: a pump fills an upper tank,
 the water runs through an orifice into a lower tank and out through a second orifice, and a PI controller holds
@@ -72,4 +72,4 @@ gain): the step to 5 cm then settles in 30 s, at the price of more overshoot aro
 
 ## Next
 
-Next in this topic: *Balancing an inverted pendulum with state feedback*. Or pick another one from the *tutorial overview*.
+Next in this topic: [Balancing an inverted pendulum with state feedback](tutorial_inverted_pendulum.md). Or pick another one from the [tutorial overview](tutorials.md).

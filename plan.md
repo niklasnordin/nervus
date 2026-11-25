@@ -99,7 +99,8 @@ tests/
 - [x] Example: first-order throttle actuator with a discrete PI controller (10 ms ECU task)
 
 ## Phase 5 – GUI MVP (PySide6, MVC)
-- [x] App shell: main window, menus, toolbar, status bar, modern light and dark theme (follows the system)
+- [x] App shell: main window, menus, toolbar, status bar, modern light and dark theme (follows the system);
+  restyled in 0.3 (flat tabs, slim scrollbars, tinted selections, focus states)
 - [x] Canvas (`QGraphicsView`): place, move, select and delete blocks; zoom and pan (wheel, pinch, trackpad,
       Space+drag); grid snapping; automatic layout for models without positions
 - [x] Wiring: drag from port to port (either direction), orthogonal routing, branch dots on fan-out
@@ -215,6 +216,8 @@ tests/
 - [x] First performance pass: precomputed execution tables, scalar fast paths (~25 % faster)
 - [x] Second performance pass (10-25 % faster): physical networks assemble in plain lists and solve once per
       time point, cheaper sources and integrators; `scripts/benchmark.py` times the examples
+- [x] Third performance pass: one network solve per time point (charging system 2x faster), scalar lookup tables
+      (gear shift 40 % faster)
 - [ ] Performance: avoid per-step Python overhead (vectorised execution, Numba, or simulate the generated C:
       "accelerator mode")
 

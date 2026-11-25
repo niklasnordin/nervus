@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | an unstable plant, state-space models, LQR state feedback, non-minimum-phase behaviour, redesigning a gain in the Console |
-| **Before this** | *DC motor speed and position control* |
+| **Before this** | [DC motor speed and position control](tutorial_dc_motor.md) |
 | **Level and time** | advanced, about 45 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/inverted_pendulum.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Control engineering ▸ Classic lab experiments (*all tutorials*) |
+| **Topic** | Control engineering ▸ Classic lab experiments ([all tutorials](tutorials.md)) |
 
 `examples/inverted_pendulum.py` is the classic advanced control lab: a pendulum hinged on a cart, balanced
 upright by moving the cart. Upright is unstable, a single PID loop cannot hold the pendulum and the cart at the
@@ -79,4 +79,4 @@ Then press **▶** and compare the runs in the Data Inspector.
 
 ## Next
 
-That was the last tutorial on control engineering. Continue with powertrain and engine control: *Engine operating modes*, or pick another one from the *tutorial overview*.
+That was the last tutorial on control engineering. Continue with powertrain and engine control: [Engine operating modes](tutorial_engine_modes.md), or pick another one from the [tutorial overview](tutorials.md).

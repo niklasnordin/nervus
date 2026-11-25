@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | a low-side switch driving a solenoid injector, opening delay versus battery voltage, freewheeling diode versus clamp, why injection needs a battery voltage correction |
-| **Before this** | *RC and RLC circuits* |
+| **Before this** | [RC and RLC circuits](tutorial_rc_rlc.md) |
 | **Level and time** | intermediate, about 30 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/injector_driver.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Electrics and electronics ▸ ECU hardware and PCB (*all tutorials*) |
+| **Topic** | Electrics and electronics ▸ ECU hardware and PCB ([all tutorials](tutorials.md)) |
 
 A fuel injector is a solenoid valve, switched by a transistor on the ECU's circuit board. How long it is *really* open,
 and so how much fuel the engine gets, depends on that circuit and on the battery voltage, not only on the pulse the
@@ -79,4 +79,4 @@ injector and driver.
 
 ## Next
 
-That was the last tutorial on electrics and electronics. Continue with ecu software, communication and diagnostics: *A vehicle network (CAN)*, or pick another one from the *tutorial overview*.
+That was the last tutorial on electrics and electronics. Continue with ecu software, communication and diagnostics: [A vehicle network (CAN)](tutorial_can_network.md), or pick another one from the [tutorial overview](tutorials.md).

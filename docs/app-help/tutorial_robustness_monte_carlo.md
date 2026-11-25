@@ -3,15 +3,15 @@
 | | |
 |---|---|
 | **You will learn** | parameter spread in a vehicle range, Monte Carlo studies in the editor and in Python, custom metrics, why the average hides the failures |
-| **Before this** | *Your first model: a cruise control* |
+| **Before this** | [Your first model: a cruise control](tutorial_first_model.md) |
 | **Level and time** | intermediate, about 30 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/cruise_control.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Testing and verification (*all tutorials*) |
+| **Topic** | Testing and verification ([all tutorials](tutorials.md)) |
 
 A controller is tuned on one car, but it is built into thousands, and every one is different: the mass changes with
 passengers and luggage, the drag with tyres and roof boxes. A **Monte Carlo** study runs the model many times with
 random parameters to see the spread, and checks the requirement for every one. This tutorial does it for the cruise
-control of *the first tutorial*.
+control of [the first tutorial](tutorial_first_model.md).
 
 ```bash
 uv run python examples/cruise_tolerance.py
@@ -86,9 +86,9 @@ would have passed.
 | `runs` = 20 | the statistics change from seed to seed: too few runs miss the rare cases |
 | a third parameter, `Kp` = `normal(300, 30)` (a controller calibrated with a tolerance) | the spread widens a little |
 
-See *Test cases and results* for sweeps over a grid and the
+See [Test cases and results](testing.md#parameter-sweeps-and-monte-carlo-runs) for sweeps over a grid and the
 dialog's options.
 
 ## Next
 
-Pick another topic from the *tutorial overview*, or build your own model.
+Pick another topic from the [tutorial overview](tutorials.md), or build your own model.

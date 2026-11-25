@@ -3,12 +3,12 @@
 | | |
 |---|---|
 | **You will learn** | fuel film dynamics (x-tau) and transient compensation, a switching lambda sensor, long-term trims learned per load cell (Adaptive Map) |
-| **Before this** | *Lambda control and fuel trims* |
+| **Before this** | [Lambda control and fuel trims](tutorial_lambda.md) |
 | **Level and time** | intermediate, about 30 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/fuel_film.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Powertrain and engine control ▸ Engine management (*all tutorials*) |
+| **Topic** | Powertrain and engine control ▸ Engine management ([all tutorials](tutorials.md)) |
 
-This tutorial follows `examples/fuel_film.py` and continues *lambda control* with three
+This tutorial follows `examples/fuel_film.py` and continues [lambda control](tutorial_lambda.md) with three
 things every production fuel system has.
 
 ```bash
@@ -58,4 +58,4 @@ To try one: change the value in the **Model Workspace** tab (double-click it), o
 
 ## Next
 
-Next in this topic: *Gear-shift logic*. Or pick another one from the *tutorial overview*.
+Next in this topic: [Gear-shift logic](tutorial_gear_shift.md). Or pick another one from the [tutorial overview](tutorials.md).

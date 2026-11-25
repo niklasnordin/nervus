@@ -30,7 +30,7 @@ shared field `<name>_P.Kp` that a calibration tool can change while the code run
 ## Typed parameters and constants
 
 Workspace variables can be stored as integer or fixed-point types and as constants in ROM (the **Type** and
-**Cal.** columns of the Model Workspace, see *Workspace and calibrations*). Calibratable parameters are in
+**Cal.** columns of the Model Workspace, see [Workspace and calibrations](workspace.md)). Calibratable parameters are in
 `<name>_P`, ordered by size (8, 4, 2, 1 bytes) so the struct has no padding and the A2L offsets are exact.
 Constants are in `const <name>_C`, which the linker puts in flash, and they are not in the A2L file.
 
@@ -70,7 +70,7 @@ the target:
 The code generator checks the model: a signal that goes from one task to another without a Rate Transition
 is reported with both block names. Blocks that get the model's In ports directly must have a rate of their
 own: sample the inputs with a Zero-Order Hold, or put each task in an
-atomic subsystem (see *Subsystems*) with its own *sample_time*.
+atomic subsystem (see [Subsystems](subsystems.md)) with its own *sample_time*.
 
 ## What can be generated
 
@@ -205,5 +205,5 @@ periods. The generated code keeps its state in global variables, so one process 
 `nervus.codegen.fmu.export_fmu(model.block("ECU"), "ECU.fmu")`.
 
 The **FMU** block imports FMUs from other tools into a model (co-simulation, needs fmpy: `uv sync --extra fmi`). See
-the tutorial *Exchanging models with FMI*.
+the tutorial [Exchanging models with FMI](tutorial_fmi.md).
 

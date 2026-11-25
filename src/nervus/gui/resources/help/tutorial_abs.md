@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | braking slip and the tyre's friction peak, a quarter-car model, hydraulic pressure modulation, a threshold ABS as a State Chart, stopping distances on dry, wet and icy roads |
-| **Before this** | *Tyre slip and traction control* |
+| **Before this** | [Tyre slip and traction control](tutorial_traction.md) |
 | **Level and time** | intermediate, about 35 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/abs_braking.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Vehicle dynamics and energy ▸ Chassis control (*all tutorials*) |
+| **Topic** | Vehicle dynamics and energy ▸ Chassis control ([all tutorials](tutorials.md)) |
 
 `examples/abs_braking.py` brakes a car as hard as possible from 100 km/h, with and without **ABS**. Without it the
 wheels lock: the car slides further and cannot be steered. With it, an ECU modulates the brake pressure dozens of
@@ -23,7 +23,7 @@ of 1.2 kg·m². The tyre force depends on the **slip** between the car and the w
 
 $$ s = \frac{v - \omega r}{v} \qquad (0: \text{rolling freely},\ 1: \text{locked}) $$
 
-through Pacejka's magic formula, as in *the traction control tutorial*: on this tyre the
+through Pacejka's magic formula, as in [the traction control tutorial](tutorial_traction.md): on this tyre the
 friction peaks at 15 % slip and a locked wheel keeps only 71 % of the peak. The car decelerates by the tyre force;
 the wheel by the brake torque minus the tyre's torque.
 
@@ -71,4 +71,4 @@ driver can **steer around** the obstacle.
 
 ## Next
 
-That was the last tutorial on vehicle dynamics and energy. Continue with electrics and electronics: *RC and RLC circuits*, or pick another one from the *tutorial overview*.
+That was the last tutorial on vehicle dynamics and energy. Continue with electrics and electronics: [RC and RLC circuits](tutorial_rc_rlc.md), or pick another one from the [tutorial overview](tutorials.md).

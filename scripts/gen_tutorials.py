@@ -136,9 +136,9 @@ def nav() -> None:
                 indent = "              "
             lines += [f'{indent}- "{t.title}": tutorials/{t.slug}.md' for t in group]
     s = re.sub(r"  - Tutorials:\n(?:      .*\n)+", "\n".join(lines) + "\n", s, count=1)
-    app = ["          - Tutorials (app): app-help/tutorials.md"]
-    app += [f'          - "Tutorial: {t.title}": app-help/{t.help_page}.md' for t in ordered()]
-    s = re.sub(r"          - Tutorials \(app\): app-help/tutorials.md\n(?:          - \"Tutorial[^\n]*\n)*",
+    app = ["          - Tutorials (app):", "              - Overview: app-help/tutorials.md"]  # a folded section
+    app += [f'              - "{t.title}": app-help/{t.help_page}.md' for t in ordered()]
+    s = re.sub(r"          - Tutorials \(app\):.*\n(?:(?:              |          - \"Tutorial)[^\n]*\n)*",
                "\n".join(app) + "\n", s, count=1)  # fmt: skip
     p.write_text(s, encoding="utf-8")
 

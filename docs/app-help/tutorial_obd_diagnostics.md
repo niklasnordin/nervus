@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | diagnostic monitors: debouncing, enable conditions, pending and confirmed codes, two-trip detection, the MIL, readiness; reading the codes with an OBD tool |
-| **Before this** | *Engine operating modes*; read *OBD-II live data* first |
+| **Before this** | [Engine operating modes](tutorial_engine_modes.md); read [OBD-II live data](obd.md) first |
 | **Level and time** | intermediate, about 35 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/obd_ecu.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | ECU software, communication and diagnostics ▸ Diagnostics (*all tutorials*) |
+| **Topic** | ECU software, communication and diagnostics ▸ Diagnostics ([all tutorials](tutorials.md)) |
 
 Every engine ECU watches itself: **monitors** test the misfire rate, the fuel trims, the catalyst, the sensors, and
 store a **diagnostic trouble code** (DTC) and switch on the check-engine lamp (**MIL**) when a test fails. A
@@ -61,7 +61,7 @@ uv run python -m nervus.obd dtc --port /dev/ttys007        # in another terminal
 The `dtc` command shows *P0302 (Cylinder 2 misfire detected)* as stored and pending, and the MIL. Any OBD
 program that talks to an ELM327 can connect to that port, also one that clears the codes (mode 04): the
 responder's *clear* output then resets the monitors, and their readiness drops back to *not complete*, exactly
-as after clearing codes in a real car. See *OBD-II live data*.
+as after clearing codes in a real car. See [OBD-II live data](obd.md).
 
 ## Experiments
 
@@ -73,4 +73,4 @@ as after clearing codes in a real car. See *OBD-II live data*.
 
 ## Next
 
-Next in this topic: *Sensor fault diagnosis and substitute values*. Or pick another one from the *tutorial overview*.
+Next in this topic: [Sensor fault diagnosis and substitute values](tutorial_sensor_diagnostics.md). Or pick another one from the [tutorial overview](tutorials.md).

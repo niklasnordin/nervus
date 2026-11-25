@@ -56,7 +56,7 @@ Problems appear in **Diagnostics** and the blocks involved get a red outline. Co
   really want zero.
 - **Algebraic loop**: a feedback loop made only of blocks whose output depends directly on their input
   (Gain, Sum, ...). Put an *Integrator* (continuous) or *Unit Delay* (discrete) in the loop, or, if the loop
-  is intended, set **Simulation ▸ Settings ▸ Algebraic loops** to *Solve iteratively* (see *Concepts*).
+  is intended, set **Simulation ▸ Settings ▸ Algebraic loops** to *Solve iteratively* (see [Concepts](concepts.md)).
 - **"needs a discrete sample time"**: a Unit Delay that inherits from a continuous signal. Give it a
   sample time, or put a Zero-Order Hold in front.
 - **"fixed step does not divide the sample time"**: choose a step such as 0.001 for a 0.01 s controller.

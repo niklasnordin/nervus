@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | an ECU software component with an interface, generated C code and its structure, calibration parameters and the A2L file, a back-to-back (SIL) test of the code, a MISRA C check |
-| **Before this** | *Your first model: a cruise control*; read *C code generation* first |
+| **Before this** | [Your first model: a cruise control](tutorial_first_model.md); read [C code generation](codegen.md) first |
 | **Level and time** | intermediate, about 40 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/throttle_ecu.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | ECU software, communication and diagnostics ▸ From model to ECU code (*all tutorials*) |
+| **Topic** | ECU software, communication and diagnostics ▸ From model to ECU code ([all tutorials](tutorials.md)) |
 
 `examples/throttle_ecu.py` takes a throttle position controller from the model to C code that can run on an ECU:
 the controller as a software component, the generated code, its calibration file, and a **back-to-back test**
@@ -71,7 +71,7 @@ RTOS task calls `ECU_step()` every 10 ms after writing the inputs, as `main_exam
 ## Step 3: calibration
 
 `Kp` and `Ki` stay **parameters in RAM** (`ECU_P`), so a calibration tool can change them on the running ECU
-through the A2L file, the same way as in the *XCP tutorial*. In the Model Workspace,
+through the A2L file, the same way as in the [XCP tutorial](tutorial_xcp_calibration.md). In the Model Workspace,
 untick **Cal.** for `Kp`: it becomes a constant in ROM (`ECU_C`) and disappears from the A2L file, which is what
 production code does with values that must never change.
 
@@ -93,7 +93,7 @@ after updating the compiler.
 
 ECU code is written to a coding standard, in the automotive industry nearly always **MISRA C**. Click **MISRA check**
 in the code generation dialog (it needs cppcheck: `brew install cppcheck` or `apt install cppcheck`): the throttle
-controller's code has no findings. *C code generation* lists what the generated code does for
+controller's code has no findings. [C code generation](codegen.md#misra-c) lists what the generated code does for
 the rules, and the three documented deviations.
 
 ## Experiments
@@ -106,4 +106,4 @@ the rules, and the three documented deviations.
 
 ## Next
 
-Next in this topic: *A sensor signal chain in fixed point*. Or pick another one from the *tutorial overview*.
+Next in this topic: [A sensor signal chain in fixed point](tutorial_fixed_point.md). Or pick another one from the [tutorial overview](tutorials.md).

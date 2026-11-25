@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | subsystems, masks (parameters for a subsystem), component libraries and linked copies, updating every model from one library |
-| **Before this** | *Your first model: a cruise control* |
+| **Before this** | [Your first model: a cruise control](tutorial_first_model.md) |
 | **Level and time** | beginner, about 30 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/engine_comparison.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Getting started (*all tutorials*) |
+| **Topic** | Getting started ([all tutorials](tutorials.md)) |
 
 Real models are built from parts that are used again and again: an engine, a throttle, a sensor. This tutorial
 shows how Nervus organises them: a **subsystem** groups blocks, a **mask** gives it parameters like a block, and a
@@ -63,7 +63,7 @@ in Properties makes it an ordinary subsystem if you really want a one-off varian
    and the library appears in the Library panel, marked 📚, ready to be dragged into other models.
 
 Models store the library path relative to the model file, so a project folder with models and libraries can be
-shared in Git as a whole. See *Component libraries* and *Subsystems*.
+shared in Git as a whole. See [Component libraries](libraries.md) and [Subsystems](subsystems.md).
 
 ## Experiments
 
@@ -75,4 +75,4 @@ shared in Git as a whole. See *Component libraries* and *Subsystems*.
 
 ## Next
 
-Next in this topic: *Scripting and testing models from Python*. Or pick another one from the *tutorial overview*.
+Next in this topic: [Scripting and testing models from Python](tutorial_python_scripting.md). Or pick another one from the [tutorial overview](tutorials.md).

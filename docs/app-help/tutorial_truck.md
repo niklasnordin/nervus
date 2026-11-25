@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | heavy-duty vehicles: a diesel's narrow torque band, a 12-speed automated gearbox (State Chart), cruise control, an exhaust brake on a descent |
-| **Before this** | *A car on a drive cycle*, *Gear-shift logic* |
+| **Before this** | [A car on a drive cycle](tutorial_drive_cycle.md), [Gear-shift logic](tutorial_gear_shift.md) |
 | **Level and time** | intermediate, about 30 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/truck.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Powertrain and engine control ▸ Transmission and driveline (*all tutorials*) |
+| **Topic** | Powertrain and engine control ▸ Transmission and driveline ([all tutorials](tutorials.md)) |
 
 `examples/truck.py` puts a 40-tonne truck on a 6 % climb and a 6 % descent: a heavy-duty diesel engine, a
 12-speed automated manual gearbox (AMT) with its shift logic as a State Chart, cruise control and an exhaust
@@ -48,4 +48,4 @@ To try one: change the value in the **Model Workspace** tab (double-click it), o
 
 ## Next
 
-That was the last tutorial on powertrain and engine control. Continue with vehicle dynamics and energy: *A car on a drive cycle*, or pick another one from the *tutorial overview*.
+That was the last tutorial on powertrain and engine control. Continue with vehicle dynamics and energy: [A car on a drive cycle](tutorial_drive_cycle.md), or pick another one from the [tutorial overview](tutorials.md).

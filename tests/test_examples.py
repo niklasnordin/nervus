@@ -59,7 +59,7 @@ def test_shared_pages_are_up_to_date() -> None:
 
     help_dir = EXAMPLES.parent / "src" / "nervus" / "gui" / "resources" / "help"
     for docs_name, app_name in SHARED_PAGES.items():
-        expected = docs_page_for_app((EXAMPLES.parent / "docs" / docs_name).read_text(encoding="utf-8"))
+        expected = docs_page_for_app((EXAMPLES.parent / "docs" / docs_name).read_text(encoding="utf-8"), docs_name)
         assert (help_dir / app_name).read_text(encoding="utf-8") == expected, (
             f"run scripts/gen_block_reference.py ({app_name})"
         )
@@ -80,6 +80,7 @@ def test_app_help_copies_are_up_to_date() -> None:
     out = EXAMPLES.parent / "docs" / "app-help"
     for page in src.glob("*.md"):
         site = re.sub(r"\]\(figures/([^)]+)\)", gen._site_image, page.read_text())  # images: the site's own copies
+        site = site.replace("](block_reference.md)", "](../blocks/index.md)")
         assert (out / page.name).read_text() == site, f"docs/app-help/{page.name} is stale"
 
 

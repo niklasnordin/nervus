@@ -25,25 +25,25 @@ Every feature has a page in this Help window (the list on the left):
 
 | Area | Features | Help page |
 |---|---|---|
-| Editor | block library, wires, undo, copy/paste, right-click menus, flip blocks, auto layout, themes | Using the editor, Keyboard shortcuts |
-| Simulation | continuous, discrete and multirate models, solvers, zero crossings, stop and assertion blocks | Running simulations, Concepts |
-| Parameters | model workspace, expressions, parameter sets (`.nervcal`) | Workspace and calibrations |
-| Structure | subsystems, masks, enabled/triggered subsystems, atomic tasks, variants, component libraries | Subsystems, Component libraries |
-| Logic | State Chart block | State machines |
-| ECU code | C code, A2L file, fixed-point data types, software-in-the-loop check | C code generation, Data types and fixed point |
-| Testing | test cases, Test Manager, Data Inspector, coverage, Model Advisor | Test cases and the Data Inspector, Coverage and Model Advisor |
-| Analysis | linearisation, trim, Bode, margins | Linear analysis |
-| Vehicle networks | CAN with DBC files; OBD-II live data and trouble codes | CAN communication, OBD-II live data |
-| Simulink users | how Simulink names map to Nervus | Coming from Simulink |
-| Files | what is stored in a `.nervus` file | Model files |
+| Editor | block library, wires, undo, copy/paste, right-click menus, flip blocks, auto layout, themes | [Using the editor](editor.md), [Keyboard shortcuts](shortcuts.md) |
+| Simulation | continuous, discrete and multirate models, solvers, zero crossings, stop and assertion blocks | [Running simulations](simulation.md), [Concepts](concepts.md) |
+| Parameters | model workspace, expressions, parameter sets (`.nervcal`) | [Workspace and calibrations](workspace.md) |
+| Structure | subsystems, masks, enabled/triggered subsystems, atomic tasks, variants, component libraries | [Subsystems](subsystems.md), [Component libraries](libraries.md) |
+| Logic | State Chart block | [State machines](statecharts.md) |
+| ECU code | C code, A2L file, fixed-point data types, software-in-the-loop check | [C code generation](codegen.md), [Data types and fixed point](datatypes.md) |
+| Testing | test cases, Test Manager, Data Inspector, coverage, Model Advisor | [Test cases and the Data Inspector](testing.md), [Coverage and Model Advisor](verification.md) |
+| Analysis | linearisation, trim, Bode, margins | [Linear analysis](analysis.md) |
+| Vehicle networks | CAN with DBC files; OBD-II live data and trouble codes | [CAN communication](can.md), [OBD-II live data](obd.md) |
+| Simulink users | how Simulink names map to Nervus | [Coming from Simulink](coming_from_simulink.md) |
+| Files | what is stored in a `.nervus` file | [Model files](model_files.md) |
 
 ## Where to go next
 
-- **Using the editor**: selecting, moving, copying and undoing.
-- **Running simulations**: solvers, sample times and what to do when something goes wrong.
-- **Block reference**: every block, its equation and parameters (below the guides in the list on the left).
+- **[Using the editor](editor.md)**: selecting, moving, copying and undoing.
+- **[Running simulations](simulation.md)**: solvers, sample times and what to do when something goes wrong.
+- **[Block reference](../blocks/index.md)**: every block, its equation and parameters (the last section in the list on the left).
   Select a block and press **F1** to jump to its page.
-- **Tutorials**: idle speed control, lambda control and fuel trims, and a car on a drive cycle.
+- **[Tutorials](tutorials.md)**: idle speed control, lambda control and fuel trims, and a car on a drive cycle.
 
 Complete example models come with Nervus: **File → Open Example** lists the model of every tutorial by topic, and
 *All examples…* opens the folder. To run and change the example *scripts*, copy them to a folder of your own with
@@ -51,41 +51,41 @@ Complete example models come with Nervus: **File → Open Example** lists the mo
 
 | Example | What it shows |
 |---|---|
-| `cruise_control.nervus` | the cruise control built step by step in the tutorial *Your first model* |
-| `throttle_pi.nervus` | an electronic throttle controller running as a 10 ms ECU task |
-| `throttle_ecu.nervus` | the same controller as an ECU subsystem, with generated C and A2L |
-| `dc_motor_speed.nervus`, `dc_motor_position.nervus` | DC motor lab: identification, PI speed and PD position control (tutorial) |
-| `coupled_tanks.nervus` | level control of two coupled tanks: a nonlinear process (tutorial) |
-| `inverted_pendulum.nervus` | balancing a pendulum on a cart with LQR state feedback (tutorial) |
-| `rc_filter.nervus`, `rlc_circuit.nervus` | RC low-pass and series RLC: step and frequency response (tutorial) |
-| `mass_spring_damper_pid.nervus` | continuous PID position control with actuator limits |
-| `idle_speed_control.nervus` | idle speed control on a mean-value engine model (tutorial) |
-| `coolant_fan.nervus` | radiator fan control with hysteresis and a lookup table |
-| `fixed_point_sensor.nervus` | a sensor signal path in fixed-point data types |
-| `engine_comparison.nervus` | two engines from one library component |
-| `lambda_control.nervus` | lambda control with short- and long-term fuel trims (tutorial) |
-| `drive_cycle.nervus` | a car with a driver model on the ECE-15 drive cycle (tutorial) |
-| `engine_modes.nervus` | engine operating modes as a State Chart: crank, idle, run, fuel cut-off, stall |
-| `gear_shift.nervus` | gear-shift logic of an automatic gearbox on a car with a hill (tutorial) |
-| `rectifier.nervus` | half-wave rectifier with a smoothing capacitor, from a SPICE netlist (tutorial) |
-| `relay_driver.nervus` | a transistor switching a relay coil, with its freewheeling diode (tutorial) |
-| `buck_converter.nervus` | a 12 V → 5 V switching regulator (tutorial) |
-| `active_filter.nervus` | an op-amp Sallen-Key low-pass filter, 1 kHz (tutorial) |
-| `starter_motor.nervus` | cranking: battery, starter relay and motor, compression (tutorial) |
-| `electronic_throttle.nervus` | drive-by-wire throttle: H-bridge, DC motor, gear, spring, PID (tutorial) |
-| `traction_control.nervus` | tyre slip and a traction control ECU on a wet road (tutorial) |
-| `ignition_knock.nervus` | spark advance map and knock control on low-octane fuel (tutorial) |
-| `fuel_film.nervus` | wall wetting, switching lambda sensor, fuel trims learned per load cell (tutorial) |
-| `truck.nervus` | a 40 t truck: diesel, 12-speed AMT, exhaust brake on a mountain road (tutorial) |
-| `can_network.nervus` | two CAN buses, gateway, rest bus, E2E checks and fault injection (tutorial) |
-| `xcp_calibration.nervus` | the cruise control with an XCP slave: calibrate it live from `xcp_tool.py` (tutorial) |
-| `ntc_sensor.nervus` | a coolant temperature sensor: NTC circuit, ADC, conversion table, P0117/P0118 diagnosis (tutorials) |
-| `abs_braking.nervus` | an emergency stop with and without ABS on dry, wet and icy roads (tutorial) |
-| `idle_requirements.nervus` | the idle controller with requirements, traceability and coverage (tutorial) |
-| `charging_system.nervus` | battery, alternator, loads and electrical energy management on a winter night (tutorial) |
-| `ev_range.nervus` | an electric car on the WLTC: consumption, regenerative braking, winter range (tutorial) |
-| `injector_driver.nervus` | an injector power stage: opening and closing delays, freewheel diode versus clamp (tutorial) |
-| `fmi_plant.nervus` | the throttle plant with the ECU as an FMU (run `examples/fmi_exchange.py` first to build the FMU; tutorial) |
-| `obd_ecu.nervus` | an engine ECU with trouble codes that answers OBD-II tools (`python -m nervus.obd simulate`) |
-| `discrete_control.nervus` | one PI loop run continuously and as a sampled ECU task: overshoot and instability as the sample time grows (tutorial) |
-| `aliasing.nervus` | a 45 Hz vibration sampled at 50 Hz looks like 5 Hz (tutorial) |
+| [`cruise_control.nervus`](tutorial_first_model.md) | the cruise control built step by step in the tutorial [Your first model](tutorial_first_model.md) |
+| [`throttle_pi.nervus`](tutorial_model_to_code.md) | an electronic throttle controller running as a 10 ms ECU task |
+| [`throttle_ecu.nervus`](tutorial_model_to_code.md) | the same controller as an ECU subsystem, with generated C and A2L |
+| [`dc_motor_speed.nervus`](tutorial_dc_motor.md), [`dc_motor_position.nervus`](tutorial_dc_motor.md) | DC motor lab: identification, PI speed and PD position control (tutorial) |
+| [`coupled_tanks.nervus`](tutorial_coupled_tanks.md) | level control of two coupled tanks: a nonlinear process (tutorial) |
+| [`inverted_pendulum.nervus`](tutorial_inverted_pendulum.md) | balancing a pendulum on a cart with LQR state feedback (tutorial) |
+| [`rc_filter.nervus`](tutorial_rc_rlc.md), [`rlc_circuit.nervus`](tutorial_rc_rlc.md) | RC low-pass and series RLC: step and frequency response (tutorial) |
+| [`mass_spring_damper_pid.nervus`](tutorial_mass_spring_damper.md) | continuous PID position control with actuator limits |
+| [`idle_speed_control.nervus`](tutorial_idle.md) | idle speed control on a mean-value engine model (tutorial) |
+| [`coolant_fan.nervus`](tutorial_coolant_fan.md) | radiator fan control with hysteresis and a lookup table |
+| [`fixed_point_sensor.nervus`](tutorial_fixed_point.md) | a sensor signal path in fixed-point data types |
+| [`engine_comparison.nervus`](tutorial_component_libraries.md) | two engines from one library component |
+| [`lambda_control.nervus`](tutorial_lambda.md) | lambda control with short- and long-term fuel trims (tutorial) |
+| [`drive_cycle.nervus`](tutorial_drive_cycle.md) | a car with a driver model on the ECE-15 drive cycle (tutorial) |
+| [`engine_modes.nervus`](tutorial_engine_modes.md) | engine operating modes as a State Chart: crank, idle, run, fuel cut-off, stall |
+| [`gear_shift.nervus`](tutorial_gear_shift.md) | gear-shift logic of an automatic gearbox on a car with a hill (tutorial) |
+| [`rectifier.nervus`](tutorial_circuits.md) | half-wave rectifier with a smoothing capacitor, from a SPICE netlist (tutorial) |
+| [`relay_driver.nervus`](tutorial_circuits.md) | a transistor switching a relay coil, with its freewheeling diode (tutorial) |
+| [`buck_converter.nervus`](tutorial_circuits.md) | a 12 V → 5 V switching regulator (tutorial) |
+| [`active_filter.nervus`](tutorial_circuits.md) | an op-amp Sallen-Key low-pass filter, 1 kHz (tutorial) |
+| [`starter_motor.nervus`](tutorial_physical.md) | cranking: battery, starter relay and motor, compression (tutorial) |
+| [`electronic_throttle.nervus`](tutorial_physical.md) | drive-by-wire throttle: H-bridge, DC motor, gear, spring, PID (tutorial) |
+| [`traction_control.nervus`](tutorial_traction.md) | tyre slip and a traction control ECU on a wet road (tutorial) |
+| [`ignition_knock.nervus`](tutorial_ignition.md) | spark advance map and knock control on low-octane fuel (tutorial) |
+| [`fuel_film.nervus`](tutorial_fuel_film.md) | wall wetting, switching lambda sensor, fuel trims learned per load cell (tutorial) |
+| [`truck.nervus`](tutorial_truck.md) | a 40 t truck: diesel, 12-speed AMT, exhaust brake on a mountain road (tutorial) |
+| [`can_network.nervus`](tutorial_can_network.md) | two CAN buses, gateway, rest bus, E2E checks and fault injection (tutorial) |
+| [`xcp_calibration.nervus`](tutorial_xcp_calibration.md) | the cruise control with an XCP slave: calibrate it live from `xcp_tool.py` (tutorial) |
+| [`ntc_sensor.nervus`](tutorial_ntc_sensor.md) | a coolant temperature sensor: NTC circuit, ADC, conversion table, P0117/P0118 diagnosis (tutorials) |
+| [`abs_braking.nervus`](tutorial_abs.md) | an emergency stop with and without ABS on dry, wet and icy roads (tutorial) |
+| [`idle_requirements.nervus`](tutorial_requirements_testing.md) | the idle controller with requirements, traceability and coverage (tutorial) |
+| [`charging_system.nervus`](tutorial_charging_system.md) | battery, alternator, loads and electrical energy management on a winter night (tutorial) |
+| [`ev_range.nervus`](tutorial_ev_range.md) | an electric car on the WLTC: consumption, regenerative braking, winter range (tutorial) |
+| [`injector_driver.nervus`](tutorial_injector_driver.md) | an injector power stage: opening and closing delays, freewheel diode versus clamp (tutorial) |
+| [`fmi_plant.nervus`](tutorial_fmi.md) | the throttle plant with the ECU as an FMU (run `examples/fmi_exchange.py` first to build the FMU; tutorial) |
+| [`obd_ecu.nervus`](tutorial_obd_diagnostics.md) | an engine ECU with trouble codes that answers OBD-II tools (`python -m nervus.obd simulate`) |
+| [`discrete_control.nervus`](tutorial_discrete_control.md) | one PI loop run continuously and as a sampled ECU task: overshoot and instability as the sample time grows (tutorial) |
+| [`aliasing.nervus`](tutorial_discrete_control.md) | a 45 Hz vibration sampled at 50 Hz looks like 5 Hz (tutorial) |

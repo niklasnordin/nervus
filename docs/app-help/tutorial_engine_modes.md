@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | an ECU's mode logic as a State Chart: cranking, starter protection, idle, fuel cut-off, stall; calibration parameters in a chart; behaviour specified by test cases |
-| **Before this** | *Your first model: a cruise control* |
+| **Before this** | [Your first model: a cruise control](tutorial_first_model.md) |
 | **Level and time** | beginner, about 30 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/engine_modes.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Powertrain and engine control ▸ Engine management (*all tutorials*) |
+| **Topic** | Powertrain and engine control ▸ Engine management ([all tutorials](tutorials.md)) |
 
 `examples/engine_modes.py` models the mode logic at the heart of every engine ECU: is the engine off,
 cranking, idling, running, coasting with the fuel cut off, or stalled? It is a **State Chart** running every
@@ -34,7 +34,7 @@ The thresholds are `param` names in the chart, so they are **calibration paramet
 
 Double-click the **modes** block: the chart editor shows the modes as states and the conditions as arrows. Click
 the arrow from *crank* to *idle* to see its guard, `rpm > rpm_started`; the number in front of it, 1, means it is
-checked first of the three transitions leaving *crank*. See *the chart editor*.
+checked first of the three transitions leaving *crank*. See [the chart editor](statecharts.md#the-chart-editor).
 
 ![](../images/chart-editor.png)
 
@@ -71,8 +71,8 @@ Change a value in the Model Workspace and press **Run All** in the Test Manager:
 | in the chart editor, select *crank* → *off* (`key < 0.5`) and press **Check earlier** twice | no change in these scenarios: the key stays on while cranking. The order matters only when two guards are true at the same time |
 
 The chart can be generated as C code (Code ▸ Generate C Code), and a back-to-back test checks the code against
-the simulation; see *C code generation*.
+the simulation; see [C code generation](codegen.md).
 
 ## Next
 
-Next in this topic: *Radiator fan control*. Or pick another one from the *tutorial overview*.
+Next in this topic: [Radiator fan control](tutorial_coolant_fan.md). Or pick another one from the [tutorial overview](tutorials.md).

@@ -23,11 +23,11 @@ Models are saved as UTF-8 JSON files with the extension `.nervus`:
 }
 ```
 
-- `type` is the block's stable `type_id` (listed in the *block reference*).
+- `type` is the block's stable `type_id` (listed in the [block reference](https://ikjbi.github.io/nervus/latest/blocks/)).
 - Every parameter is written out, including defaults, so a file keeps its meaning if a default changes.
 - Infinite values are written as the strings `"inf"` / `"-inf"`, so the file stays strict JSON.
 - A parameter given as an expression of workspace variables is stored as the expression string, e.g.
-  `"gain": "Kp"`. See *Workspace and calibrations*.
+  `"gain": "Kp"`. See [Workspace and calibrations](workspace.md).
 - `meta` holds GUI data (block positions, view state) and is ignored by the simulator.
 - Output is deterministic, so a small change to the model gives a small `git diff`.
 
@@ -36,6 +36,6 @@ Models are saved as UTF-8 JSON files with the extension `.nervus`:
 `schema_version` is increased whenever the format changes, and Nervus upgrades older files automatically when
 it loads them. Version 2 added `workspace`; version 3 added subsystems (a block entry may contain a nested
 `"system"` with its own `blocks` and `connections`); version 4 added `tests` (test cases with inputs,
-parameters and checks, see *Test cases and results*). Files from a *newer* version of Nervus are rejected with a message asking you to upgrade.
+parameters and checks, see [Test cases and results](testing.md)). Files from a *newer* version of Nervus are rejected with a message asking you to upgrade.
 
 > **Python Function blocks run code:** A model containing a Python Function block runs that code when it is loaded and simulated. Only open model files you trust.

@@ -188,7 +188,7 @@ momentum turns the engine) and back on at 1100 rpm, before the engine could stal
 `examples/gear_shift.py` has one state per gear. Each transition compares the vehicle speed with the shift
 speed read from a map for the current gear and pedal, `speed > up_speed and after(min_gear_time)`; the minimum
 time in a gear and the hysteresis between the up- and downshift maps keep it from hunting. See the
-*gear-shift tutorial*.
+[gear-shift tutorial](tutorial_gear_shift.md).
 
 ## C code
 

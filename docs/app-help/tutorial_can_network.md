@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | ECUs on simulated CAN buses: DBC files, arbitration and bus load, a gateway, rest-bus simulation, E2E protection, fault injection and timeouts, the bus trace |
-| **Before this** | *Your first model: a cruise control*; read *CAN communication* first |
+| **Before this** | [Your first model: a cruise control](tutorial_first_model.md); read [CAN communication](can.md) first |
 | **Level and time** | advanced, about 40 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/can_network.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | ECU software, communication and diagnostics ▸ Vehicle networks (*all tutorials*) |
+| **Topic** | ECU software, communication and diagnostics ▸ Vehicle networks ([all tutorials](tutorials.md)) |
 
 `examples/can_network.py` connects ECUs over two simulated CAN buses: an engine ECU (ECM) on the
 **powertrain CAN** (500 kbit/s), an instrument cluster on the **body CAN** (125 kbit/s), a **gateway**
@@ -58,4 +58,4 @@ To try one: change the value in the **Model Workspace** tab (double-click it), o
 
 ## Next
 
-Next in this topic: *Live calibration over XCP*. Or pick another one from the *tutorial overview*.
+Next in this topic: [Live calibration over XCP](tutorial_xcp_calibration.md). Or pick another one from the [tutorial overview](tutorials.md).

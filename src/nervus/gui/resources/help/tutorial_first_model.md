@@ -6,7 +6,7 @@
 | **Before this** | nothing: start here (the editor needs `uv sync --extra gui`) |
 | **Level and time** | beginner, about 30 minutes |
 | **Follow along** | build the model yourself, step by step below; the finished model is `examples/cruise_control.nervus` |
-| **Topic** | Getting started (*all tutorials*) |
+| **Topic** | Getting started ([all tutorials](tutorials.md)) |
 
 We build a **cruise control**: a controller that adjusts the engine force so the car holds a set speed. On the
 way you meet the most common effect in control engineering, **integrator windup**, and fix it.
@@ -142,7 +142,7 @@ Git.
 To make sure nobody breaks the controller later, add a **test case**: in the **Test Manager** tab press
 **Add**, set the stop time to 40 and add a check *bounds* on `speed` with upper limit `101`. Press **Run All**
 (**Ctrl+T**): it passes now, and it fails if someone removes the anti-windup. See
-*Test cases*.
+[Test cases](testing.md).
 
 ## The same in Python
 
@@ -173,4 +173,4 @@ Inspector.
 
 ## Next
 
-Next in this topic: *Reusable components with subsystems, masks and libraries*. Or pick another one from the *tutorial overview*.
+Next in this topic: [Reusable components with subsystems, masks and libraries](tutorial_component_libraries.md). Or pick another one from the [tutorial overview](tutorials.md).

@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | FMI 2.0 co-simulation FMUs: exporting a subsystem, running it in another tool (fmpy, Simulink), importing an FMU as a block, and the communication-step delay of co-simulation |
-| **Before this** | *From model to ECU C code* |
+| **Before this** | [From model to ECU C code](tutorial_model_to_code.md) |
 | **Level and time** | intermediate, about 30 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/fmi_plant.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | ECU software, communication and diagnostics ▸ From model to ECU code (*all tutorials*) |
+| **Topic** | ECU software, communication and diagnostics ▸ From model to ECU code ([all tutorials](tutorials.md)) |
 
 **FMI** (Functional Mock-up Interface) is the standard for exchanging simulation models between tools. A model is
 packed as an **FMU**, a zip file with a description of its variables and compiled code, and almost every
@@ -22,7 +22,7 @@ uv run python examples/fmi_exchange.py
 ## Step 1: export an FMU
 
 Open `examples/throttle_ecu.nervus`, select the **ECU** subsystem and choose **Code ▸ Export FMU…**. Nervus generates
-the C code (as in *the code-generation tutorial*), adds the FMI 2.0 functions around it,
+the C code (as in [the code-generation tutorial](tutorial_model_to_code.md)), adds the FMI 2.0 functions around it,
 compiles it for this computer and writes `ECU.fmu`:
 
 | In the FMU | From the model |
@@ -73,8 +73,8 @@ communication step (when the FMU allows it) makes the difference smaller.
 | **ECU_fmu** *sample_time* = 0.02 | the FMU runs two internal steps per communication step: a 20 ms lag, and the difference grows to 25° |
 | `uv run python -c "from fmpy import dump; dump('examples/generated/ECU.fmu')"` | the FMU's description: variables, value references, platforms |
 
-See *C code generation* for the details of the export.
+See [C code generation](codegen.md#fmi-export) for the details of the export.
 
 ## Next
 
-That was the last tutorial on ecu software, communication and diagnostics. Continue with testing and verification: *Requirements-based testing and coverage*, or pick another one from the *tutorial overview*.
+That was the last tutorial on ecu software, communication and diagnostics. Continue with testing and verification: [Requirements-based testing and coverage](tutorial_requirements_testing.md), or pick another one from the [tutorial overview](tutorials.md).

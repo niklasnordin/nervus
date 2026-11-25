@@ -62,42 +62,43 @@ nav:
           - C code generation: app-help/codegen.md
           - Test cases and the Data Inspector: app-help/testing.md
           - Coverage and Model Advisor: app-help/verification.md
-          - Tutorials (app): app-help/tutorials.md
-          - "Tutorial: Your first model: a cruise control": app-help/tutorial_first_model.md
-          - "Tutorial: Reusable components with subsystems, masks and libraries": app-help/tutorial_component_libraries.md
-          - "Tutorial: Scripting and testing models from Python": app-help/tutorial_python_scripting.md
-          - "Tutorial: Position control of a mass-spring-damper": app-help/tutorial_mass_spring_damper.md
-          - "Tutorial: DC motor speed and position control": app-help/tutorial_dc_motor.md
-          - "Tutorial: Level control of coupled water tanks": app-help/tutorial_coupled_tanks.md
-          - "Tutorial: Balancing an inverted pendulum with state feedback": app-help/tutorial_inverted_pendulum.md
-          - "Tutorial: Engine operating modes": app-help/tutorial_engine_modes.md
-          - "Tutorial: Radiator fan control": app-help/tutorial_coolant_fan.md
-          - "Tutorial: Idle speed control": app-help/tutorial_idle.md
-          - "Tutorial: Lambda control and fuel trims": app-help/tutorial_lambda.md
-          - "Tutorial: Ignition timing and knock control": app-help/tutorial_ignition.md
-          - "Tutorial: Wall wetting and learned fuel trims": app-help/tutorial_fuel_film.md
-          - "Tutorial: Gear-shift logic": app-help/tutorial_gear_shift.md
-          - "Tutorial: A truck on a mountain road": app-help/tutorial_truck.md
-          - "Tutorial: A car on a drive cycle": app-help/tutorial_drive_cycle.md
-          - "Tutorial: Electric vehicle range on the WLTP cycle": app-help/tutorial_ev_range.md
-          - "Tutorial: Tyre slip and traction control": app-help/tutorial_traction.md
-          - "Tutorial: Anti-lock braking (ABS)": app-help/tutorial_abs.md
-          - "Tutorial: RC and RLC circuits": app-help/tutorial_rc_rlc.md
-          - "Tutorial: Rectifier, relay driver, buck converter and active filter": app-help/tutorial_circuits.md
-          - "Tutorial: Starter motor and electronic throttle": app-help/tutorial_physical.md
-          - "Tutorial: The 12 V charging system and energy management": app-help/tutorial_charging_system.md
-          - "Tutorial: An NTC temperature sensor interface": app-help/tutorial_ntc_sensor.md
-          - "Tutorial: The injector driver power stage": app-help/tutorial_injector_driver.md
-          - "Tutorial: A vehicle network (CAN)": app-help/tutorial_can_network.md
-          - "Tutorial: Live calibration over XCP": app-help/tutorial_xcp_calibration.md
-          - "Tutorial: On-board diagnostics and trouble codes": app-help/tutorial_obd_diagnostics.md
-          - "Tutorial: Sensor fault diagnosis and substitute values": app-help/tutorial_sensor_diagnostics.md
-          - "Tutorial: From continuous to discrete: sample times": app-help/tutorial_discrete_control.md
-          - "Tutorial: From model to ECU C code": app-help/tutorial_model_to_code.md
-          - "Tutorial: A sensor signal chain in fixed point": app-help/tutorial_fixed_point.md
-          - "Tutorial: Exchanging models with FMI": app-help/tutorial_fmi.md
-          - "Tutorial: Requirements-based testing and coverage": app-help/tutorial_requirements_testing.md
-          - "Tutorial: Robustness and tolerances with Monte Carlo": app-help/tutorial_robustness_monte_carlo.md
+          - Tutorials (app):
+              - Overview: app-help/tutorials.md
+              - "Your first model: a cruise control": app-help/tutorial_first_model.md
+              - "Reusable components with subsystems, masks and libraries": app-help/tutorial_component_libraries.md
+              - "Scripting and testing models from Python": app-help/tutorial_python_scripting.md
+              - "Position control of a mass-spring-damper": app-help/tutorial_mass_spring_damper.md
+              - "DC motor speed and position control": app-help/tutorial_dc_motor.md
+              - "Level control of coupled water tanks": app-help/tutorial_coupled_tanks.md
+              - "Balancing an inverted pendulum with state feedback": app-help/tutorial_inverted_pendulum.md
+              - "Engine operating modes": app-help/tutorial_engine_modes.md
+              - "Radiator fan control": app-help/tutorial_coolant_fan.md
+              - "Idle speed control": app-help/tutorial_idle.md
+              - "Lambda control and fuel trims": app-help/tutorial_lambda.md
+              - "Ignition timing and knock control": app-help/tutorial_ignition.md
+              - "Wall wetting and learned fuel trims": app-help/tutorial_fuel_film.md
+              - "Gear-shift logic": app-help/tutorial_gear_shift.md
+              - "A truck on a mountain road": app-help/tutorial_truck.md
+              - "A car on a drive cycle": app-help/tutorial_drive_cycle.md
+              - "Electric vehicle range on the WLTP cycle": app-help/tutorial_ev_range.md
+              - "Tyre slip and traction control": app-help/tutorial_traction.md
+              - "Anti-lock braking (ABS)": app-help/tutorial_abs.md
+              - "RC and RLC circuits": app-help/tutorial_rc_rlc.md
+              - "Rectifier, relay driver, buck converter and active filter": app-help/tutorial_circuits.md
+              - "Starter motor and electronic throttle": app-help/tutorial_physical.md
+              - "The 12 V charging system and energy management": app-help/tutorial_charging_system.md
+              - "An NTC temperature sensor interface": app-help/tutorial_ntc_sensor.md
+              - "The injector driver power stage": app-help/tutorial_injector_driver.md
+              - "A vehicle network (CAN)": app-help/tutorial_can_network.md
+              - "Live calibration over XCP": app-help/tutorial_xcp_calibration.md
+              - "On-board diagnostics and trouble codes": app-help/tutorial_obd_diagnostics.md
+              - "Sensor fault diagnosis and substitute values": app-help/tutorial_sensor_diagnostics.md
+              - "From continuous to discrete: sample times": app-help/tutorial_discrete_control.md
+              - "From model to ECU C code": app-help/tutorial_model_to_code.md
+              - "A sensor signal chain in fixed point": app-help/tutorial_fixed_point.md
+              - "Exchanging models with FMI": app-help/tutorial_fmi.md
+              - "Requirements-based testing and coverage": app-help/tutorial_requirements_testing.md
+              - "Robustness and tolerances with Monte Carlo": app-help/tutorial_robustness_monte_carlo.md
           - Coming from Simulink (app): app-help/coming_from_simulink.md
           - Model files (app): app-help/model_files.md
           - Keyboard shortcuts: app-help/shortcuts.md

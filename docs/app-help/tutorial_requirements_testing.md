@@ -3,14 +3,14 @@
 | | |
 |---|---|
 | **You will learn** | requirements imported from a CSV file, traceability from requirements to blocks and tests, model coverage to find untested behaviour, closing the gap, review reports |
-| **Before this** | *Idle speed control* |
+| **Before this** | [Idle speed control](tutorial_idle.md) |
 | **Level and time** | intermediate, about 40 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/idle_requirements.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Testing and verification (*all tutorials*) |
+| **Topic** | Testing and verification ([all tutorials](tutorials.md)) |
 
 In the automotive industry a function is finished when every **requirement** is verified by a **test**, and the
 tests exercise the whole function (**coverage**). This tutorial takes the idle speed controller of
-*the idle speed tutorial* through that process: import its requirements, link them to the
+[the idle speed tutorial](tutorial_idle.md) through that process: import its requirements, link them to the
 model and the tests, find the gap, close it, and write the reports a review asks for.
 
 ```bash
@@ -91,4 +91,4 @@ tests, and about links to unknown ids.
 
 ## Next
 
-Next in this topic: *Robustness and tolerances with Monte Carlo*. Or pick another one from the *tutorial overview*.
+Next in this topic: [Robustness and tolerances with Monte Carlo](tutorial_robustness_monte_carlo.md). Or pick another one from the [tutorial overview](tutorials.md).

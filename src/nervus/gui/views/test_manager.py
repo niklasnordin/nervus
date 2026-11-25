@@ -100,6 +100,7 @@ class TestCaseDialog(QDialog):
         self.pset.setPlaceholderText("optional .nervcal file")
         browse = QPushButton("…")
         browse.setFixedWidth(32)
+        browse.setProperty("compact", True)
         browse.clicked.connect(self._browse)
         pset_row = QHBoxLayout()
         pset_row.addWidget(self.pset)

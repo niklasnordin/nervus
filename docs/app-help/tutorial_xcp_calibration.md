@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | how calibration tools work: XCP on CAN, A2L files, measuring and changing values in a running ECU, a command-line calibration tool, real-time simulation |
-| **Before this** | *Your first model: a cruise control* |
+| **Before this** | [Your first model: a cruise control](tutorial_first_model.md) |
 | **Level and time** | intermediate, about 35 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/xcp_calibration.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | ECU software, communication and diagnostics ▸ Vehicle networks (*all tutorials*) |
+| **Topic** | ECU software, communication and diagnostics ▸ Vehicle networks ([all tutorials](tutorials.md)) |
 
 Calibration engineers tune an ECU while the car drives: a tool such as INCA or CANape reads signals and changes
 parameters in the ECU's memory over **XCP**, using the ECU's **A2L** file to know where each variable is. In this
@@ -90,9 +90,9 @@ gain, the car comes down faster (it brakes harder), as the calibrator wanted:
 | `xcp_tool.py read speed` when the model is not running | *no ECU answers*: XCP needs a running slave |
 
 Polled measurement (reading values one by one) is what this tool does; production tools also use **DAQ lists**,
-where the ECU sends measurements on its own every task cycle. See *CAN communication* for the protocol
+where the ECU sends measurements on its own every task cycle. See [CAN communication](can.md) for the protocol
 details and how to make your own models measurable.
 
 ## Next
 
-Next in this topic: *On-board diagnostics and trouble codes*. Or pick another one from the *tutorial overview*.
+Next in this topic: [On-board diagnostics and trouble codes](tutorial_obd_diagnostics.md). Or pick another one from the [tutorial overview](tutorials.md).

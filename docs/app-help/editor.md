@@ -7,7 +7,7 @@
 | **Library** (left) | All blocks, grouped by category. Type in the search box to filter. Drag a block onto the canvas or double-click it. Hover for a short description. |
 | **Canvas** (centre) | The diagram. |
 | **Properties** (right) | Parameters of the selected block. Press **?** for the block's help. |
-| **Model Workspace** (bottom, tab) | Named parameters that blocks can use. See *Workspace and calibrations*. |
+| **Model Workspace** (bottom, tab) | Named parameters that blocks can use. See [Workspace and calibrations](workspace.md). |
 | **Diagnostics** (bottom) | Problems in the model, such as unconnected inputs or algebraic loops. Click an entry to select the blocks involved. |
 
 Panels can be moved, closed and reopened from the **View** menu.

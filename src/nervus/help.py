@@ -170,10 +170,44 @@ def _tutorial_pages() -> None:
 _tutorial_pages()
 
 
-def docs_page_for_app(markdown: str) -> str:
-    """Convert a GitHub docs page for the in-app help: block figures are bundled, screenshots are not, and links
-    to other pages become plain text (the Help window has its own page list)."""
-    import re
+SITE = "https://ikjbi.github.io/nervus/latest/"
+"""The online documentation: links to docs pages that have no in-app version go there."""
+
+HELP_DIR = Path(__file__).parent / "gui" / "resources" / "help"
+
+
+def app_page_for_docs(docs_name: str) -> str | None:
+    """The in-app help page (``name.md``) for a docs page (``tutorials/abs.md``), or None if there is none."""
+    if docs_name in SHARED_PAGES:
+        return SHARED_PAGES[docs_name]
+    if "/" not in docs_name and docs_name != "index.md":
+        name = docs_name.replace("-", "_")
+        if (HELP_DIR / name).exists():
+            return name
+    return None
+
+
+def _app_link(m: re.Match[str], docs_name: str) -> str:
+    """A docs link ``[text](../physical.md#anchor)`` for the app: to the in-app page, or to the online docs."""
+    text, target, anchor = m.group(1), m.group(2), m.group(3) or ""
+    parts: list[str] = []
+    for part in (Path(docs_name).parent / target).as_posix().split("/"):
+        if part == "..":
+            if parts:
+                parts.pop()
+        elif part not in ("", "."):
+            parts.append(part)
+    resolved = "/".join(parts)
+    app = app_page_for_docs(resolved)
+    if app is not None:
+        return f"[{text}]({app}{anchor})"
+    page = resolved.removesuffix(".md").removesuffix("index")
+    return f"[{text}]({SITE}{page.rstrip('/') + '/' if page else ''}{anchor})"
+
+
+def docs_page_for_app(markdown: str, docs_name: str = "") -> str:
+    """Convert a GitHub docs page (``docs_name``, relative to docs/) for the in-app help: block figures are bundled,
+    screenshots are not, and links to other pages go to their in-app page (or to the online docs)."""
 
     s = re.sub(r"!\[[^\]]*\]\((?:\.\./)?images/blocks/([^)]+)\)", r"![](figures/\1)", markdown)
     figures = Path(__file__).parent / "gui" / "resources" / "figures"
@@ -182,7 +216,7 @@ def docs_page_for_app(markdown: str) -> str:
         return f"![]({'figures/' + m.group(2)})\n\n" if (figures / m.group(2)).exists() else ""
 
     s = re.sub(r"!\[[^\]]*\]\((\.\./)?images/([^)/]+)\)\n\n?", screenshot, s)
-    s = re.sub(r"\[([^\]]+)\]\((?!https?:)[^)]*\.md(#[^)]*)?\)", r"*\1*", s)
+    s = re.sub(r"\[([^\]]+)\]\((?!https?:)([^)#]*\.md)(#[^)]*)?\)", lambda m: _app_link(m, docs_name), s)
 
     def admonition(m: re.Match[str]) -> str:  # !!! tip "Title" + indented body → a quoted paragraph
         title = m.group(2) or m.group(1).capitalize()

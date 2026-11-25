@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | a thermistor in a voltage divider, the ECU's pull-up, input filter and ADC, a conversion table, resolution over the range, why software and hardware must match |
-| **Before this** | *Your first model: a cruise control* |
+| **Before this** | [Your first model: a cruise control](tutorial_first_model.md) |
 | **Level and time** | intermediate, about 35 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/ntc_sensor.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Electrics and electronics ▸ ECU hardware and PCB (*all tutorials*) |
+| **Topic** | Electrics and electronics ▸ ECU hardware and PCB ([all tutorials](tutorials.md)) |
 
 Coolant, intake air, oil, fuel and battery temperatures are all measured the same way: an **NTC thermistor** in a
 voltage divider, read by the ECU's analog-to-digital converter. `examples/ntc_sensor.py` models the whole chain,
@@ -64,8 +64,8 @@ still empty and the ADC reads 0 V; real ECUs wait a few milliseconds before the 
 | `C_filter` = 100e-6 (τ = 1 s) | a slower filter: the reading lags by about a second and the error grows to 0.9 °C during the warm-up |
 
 The same circuit with a short or an open wire is the subject of the next tutorial,
-*Sensor fault diagnosis*.
+[Sensor fault diagnosis](tutorial_sensor_diagnostics.md).
 
 ## Next
 
-Next in this topic: *The injector driver power stage*. Or pick another one from the *tutorial overview*.
+Next in this topic: [The injector driver power stage](tutorial_injector_driver.md). Or pick another one from the [tutorial overview](tutorials.md).

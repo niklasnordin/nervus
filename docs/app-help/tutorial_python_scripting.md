@@ -3,14 +3,14 @@
 | | |
 |---|---|
 | **You will learn** | loading and running a model from a script, changing parameters for one run or for good, parameter sweeps, running a model's test cases in pytest, building a model in code |
-| **Before this** | *Your first model: a cruise control* |
+| **Before this** | [Your first model: a cruise control](tutorial_first_model.md) |
 | **Level and time** | beginner, about 25 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/cruise_control.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Getting started (*all tutorials*) |
+| **Topic** | Getting started ([all tutorials](tutorials.md)) |
 
 Everything the editor does, a Python script can do too: load a model, change its parameters, run it, sweep a
 gain, check the results. Scripts make studies repeatable, and they put models into CI, where every change is
-tested. We take the cruise control of the *first tutorial* and drive it from Python.
+tested. We take the cruise control of the [first tutorial](tutorial_first_model.md) and drive it from Python.
 
 The whole script is `examples/scripting.py`; it prints every number quoted here:
 
@@ -96,7 +96,7 @@ A *smaller* proportional gain gives *more* overshoot here. With `Ki` fixed, a sm
 integral term in charge, and the integral overshoots. Sweeps like this one find such surprises quickly.
 
 `table.to_csv("sweep.csv")` saves the table. Pass several variables to get every combination, and use
-`monte_carlo` for random tolerances (see *Robustness and tolerances with Monte Carlo*).
+`monte_carlo` for random tolerances (see [Robustness and tolerances with Monte Carlo](tutorial_robustness_monte_carlo.md)).
 Pass `keep_results=True` to keep the full results for plotting:
 
 ```python
@@ -175,7 +175,7 @@ print(res["y"][-1])  # 0.9975 = 1 - exp(-6)
 lays them out when it opens the file. Every example in `examples/` is built this way, so they are a good
 reference: `examples/cruise_control.py` builds the model of the first tutorial, test case included.
 
-The block classes and their parameters are listed in the *block reference*. In the
+The block classes and their parameters are listed in the [block reference](https://ikjbi.github.io/nervus/latest/blocks/). In the
 Console, `help(Gain)` shows the same text.
 
 ## Experiments
@@ -189,4 +189,4 @@ Console, `help(Gain)` shows the same text.
 
 ## Next
 
-That was the last tutorial on getting started. Continue with control engineering: *Position control of a mass-spring-damper*, or pick another one from the *tutorial overview*.
+That was the last tutorial on getting started. Continue with control engineering: [Position control of a mass-spring-damper](tutorial_mass_spring_damper.md), or pick another one from the [tutorial overview](tutorials.md).

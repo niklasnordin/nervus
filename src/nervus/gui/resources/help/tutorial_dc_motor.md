@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | system identification from a step response, PI design by pole-zero cancellation, PD design from damping and natural frequency, a physical motor model and a 1 kHz controller |
-| **Before this** | *Position control of a mass-spring-damper* |
+| **Before this** | [Position control of a mass-spring-damper](tutorial_mass_spring_damper.md) |
 | **Level and time** | intermediate, about 45 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/dc_motor_speed.nervus`, `examples/dc_motor_position.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Control engineering ▸ Classic lab experiments (*all tutorials*) |
+| **Topic** | Control engineering ▸ Classic lab experiments ([all tutorials](tutorials.md)) |
 
 `examples/dc_motor_lab.py` is the servo experiment of control lab courses: a small DC motor with an inertia
 disk, a ±10 V amplifier, an encoder, and a controller running at 1 kHz. You will **identify** the motor from a
@@ -76,4 +76,4 @@ servo: 70 % overshoot and a long ringing.
 
 ## Next
 
-Next in this topic: *Level control of coupled water tanks*. Or pick another one from the *tutorial overview*.
+Next in this topic: [Level control of coupled water tanks](tutorial_coupled_tanks.md). Or pick another one from the [tutorial overview](tutorials.md).

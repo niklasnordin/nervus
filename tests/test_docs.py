@@ -34,8 +34,9 @@ def test_help_pages_have_no_broken_links() -> None:
     for page in HELP.glob("*.md"):
         text = page.read_text(encoding="utf-8")
         assert "](images/" not in text and "](../images/" not in text, f"{page.name}: screenshots are not bundled"
-        links = re.findall(r"\]\((?!https?:|figures/)([^)]+)\)", text)
-        assert not links, f"{page.name}: links to other files do not work in the app: {links}"
+        for link in re.findall(r"\]\((?!https?:|figures/)([^)]+)\)", text):  # other help pages, opened in the app
+            name = link.partition("#")[0]
+            assert name == "block_reference.md" or (HELP / name).exists(), f"{page.name}: no help page {link}"
         for fig in re.findall(r"\]\(figures/([^)]+)\)", text):
             assert (ROOT / "src" / "nervus" / "gui" / "resources" / "figures" / fig).exists(), f"{page.name}: {fig}"
 

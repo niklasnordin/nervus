@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | what running a controller every T milliseconds does to a loop, the zero-order hold, choosing a sample time, discrete poles and stability, aliasing and anti-aliasing filters |
-| **Before this** | *Your first model: a cruise control*; read *Sample times* first |
+| **Before this** | [Your first model: a cruise control](tutorial_first_model.md); read [Sample times](concepts.md#sample-times) first |
 | **Level and time** | beginner, about 30 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/discrete_control.nervus`, `examples/aliasing.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | ECU software, communication and diagnostics ▸ From model to ECU code (*all tutorials*) |
+| **Topic** | ECU software, communication and diagnostics ▸ From model to ECU code ([all tutorials](tutorials.md)) |
 
 A controller on an ECU does not run continuously. A task wakes up every few milliseconds, reads its sensors,
 computes a new output and writes it to the actuator, and that output then stays put until the next run. This
@@ -89,7 +89,7 @@ axis makes the output flip sign from sample to sample: the ringing in the figure
 - at $T = 58$ ms that pole leaves the unit circle at $z = -1$, and the loop is unstable.
 
 The script `examples/discrete_control.py` computes the overshoot for each sample time with a sweep, as in
-*Scripting and testing models from Python*.
+[Scripting and testing models from Python](tutorial_python_scripting.md).
 
 > **Retuning helps, up to a point:** A slower design tolerates a slower controller. With `tau_cl` = 0.1 the 50 ms controller overshoots by 2.9 % instead of 97 %, but the loop is then five times slower. Sample time and bandwidth are traded against each other. You cannot make a slow task control a fast plant.
 
@@ -106,7 +106,7 @@ $|f - n f_s|$ for the nearest whole $n$: here $|45 - 50| = 5$ Hz. A controller w
 
 No software after the sampler can undo this. The cure is in hardware, before the ADC: an **anti-aliasing filter**,
 a low-pass (often a simple RC network on the ECU's input pin) that removes everything above the Nyquist frequency.
-*An NTC temperature sensor interface* has one.
+[An NTC temperature sensor interface](tutorial_ntc_sensor.md) has one.
 
 ## Experiments
 
@@ -121,4 +121,4 @@ a low-pass (often a simple RC network on the ECU's input pin) that removes every
 
 ## Next
 
-Next in this topic: *From model to ECU C code*. Or pick another one from the *tutorial overview*.
+Next in this topic: [From model to ECU C code](tutorial_model_to_code.md). Or pick another one from the [tutorial overview](tutorials.md).

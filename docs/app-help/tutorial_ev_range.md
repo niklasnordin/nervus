@@ -3,13 +3,13 @@
 | | |
 |---|---|
 | **You will learn** | the energy chain of an electric car, drivetrain efficiency, regenerative braking, the winter heater, consumption in kWh/100 km and range |
-| **Before this** | *A car on a drive cycle* |
+| **Before this** | [A car on a drive cycle](tutorial_drive_cycle.md) |
 | **Level and time** | beginner, about 30 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/ev_range.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Vehicle dynamics and energy ▸ Longitudinal dynamics and energy (*all tutorials*) |
+| **Topic** | Vehicle dynamics and energy ▸ Longitudinal dynamics and energy ([all tutorials](tutorials.md)) |
 
 How far does an electric car get on one charge, and why so much less in winter? `examples/ev_range.py` drives an
-electric version of the car from *the drive-cycle tutorial* over the official **WLTC** (the cycle of
+electric version of the car from [the drive-cycle tutorial](tutorial_drive_cycle.md) over the official **WLTC** (the cycle of
 the WLTP type approval) and follows the energy from the battery to the wheels and back.
 
 ```bash
@@ -73,4 +73,4 @@ jam the heater can use more energy than the driving.
 
 ## Next
 
-Next in this topic: *Tyre slip and traction control*. Or pick another one from the *tutorial overview*.
+Next in this topic: [Tyre slip and traction control](tutorial_traction.md). Or pick another one from the [tutorial overview](tutorials.md).

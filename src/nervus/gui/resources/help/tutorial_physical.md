@@ -3,13 +3,13 @@
 | | |
 |---|---|
 | **You will learn** | physical modelling (circuits, shafts, springs connected by links instead of signals): cranking an engine on a weak battery, a drive-by-wire throttle servo |
-| **Before this** | *Your first model: a cruise control*; read *Physical modelling* first |
+| **Before this** | [Your first model: a cruise control](tutorial_first_model.md); read [Physical modelling](physical.md) first |
 | **Level and time** | intermediate, about 45 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/starter_motor.nervus`, `examples/electronic_throttle.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Electrics and electronics ▸ Vehicle electrical system (*all tutorials*) |
+| **Topic** | Electrics and electronics ▸ Vehicle electrical system ([all tutorials](tutorials.md)) |
 
 Two physical models that mix circuits, mechanics and control: cranking an engine with the starter motor, and
-the drive-by-wire throttle. Both are built from physical blocks (see *Physical modelling*).
+the drive-by-wire throttle. Both are built from physical blocks (see [Physical modelling](physical.md)).
 
 ```bash
 uv run python examples/starter_motor.py
@@ -70,4 +70,4 @@ To try one: change the value in the **Model Workspace** tab (double-click it), o
 
 ## Next
 
-Next in this topic: *The 12 V charging system and energy management*. Or pick another one from the *tutorial overview*.
+Next in this topic: [The 12 V charging system and energy management](tutorial_charging_system.md). Or pick another one from the [tutorial overview](tutorials.md).

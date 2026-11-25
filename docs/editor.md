@@ -20,7 +20,8 @@ uv run nervus examples/throttle_pi.nervus
 | **Test Manager** (bottom, tab) | Test cases saved with the model; run them and see pass/fail. See [Test cases and results](testing.md). |
 | **Diagnostics** (bottom) | Problems such as unconnected inputs or algebraic loops. Click one to select the blocks involved; they also get a red outline. |
 
-Dark mode follows the system setting, or choose it under **View → Theme**:
+Dark mode follows the system setting, or choose it under **View → Theme**. Both themes use the same colour tokens
+(one accent colour, tinted selections), so the panels, the canvas and the plots always match:
 
 ![The editor in dark mode](images/editor-dark.png)
 
@@ -179,7 +180,9 @@ editor at once and are **one undo step** (*Edit ▸ Undo* reverts them). Assigni
 
 ## Built-in help
 
-**Help → Nervus Help** opens the guide and the full block reference inside the app. Select a block and press
+**Help → Nervus Help** opens the guide and the full block reference inside the app. The list on the left has the
+guide pages, then **Tutorials** and **Block reference**: click one to fold it open (the tutorials by topic, the blocks
+by category). Links between pages open in the Help window. Select a block and press
 **F1** (or **?** in the Properties panel) to jump straight to its page. Equations are typeset, and many blocks
 have explanatory figures:
 

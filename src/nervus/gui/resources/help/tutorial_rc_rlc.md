@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | time constant and step response, cut-off frequency and the Bode plot, resonance, damping and the quality factor, physical circuit blocks and linear analysis |
-| **Before this** | *Your first model: a cruise control* |
+| **Before this** | [Your first model: a cruise control](tutorial_first_model.md) |
 | **Level and time** | beginner, about 30 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/rc_filter.nervus`, `examples/rlc_circuit.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Electrics and electronics ▸ Circuit fundamentals (*all tutorials*) |
+| **Topic** | Electrics and electronics ▸ Circuit fundamentals ([all tutorials](tutorials.md)) |
 
 The first lab of every electronics course: charge a capacitor through a resistor, then add an inductor and watch the
 circuit ring. `examples/rc_rlc.py` builds both circuits from physical blocks, and you measure their **step
@@ -63,8 +63,8 @@ Change the values in the Model Workspace, run, and compare in the Data Inspector
 | RLC: `R` = 1 | ζ = 0.016: Q = 32, a 30 dB resonance peak and a ringing that lasts many milliseconds |
 | RLC: `L` = 2.5e-3 | f₀ doubles to 1007 Hz, ζ doubles to 0.32 |
 
-From here, *the circuits tutorial* goes on to diodes, transistors and switching converters.
+From here, [the circuits tutorial](tutorial_circuits.md) goes on to diodes, transistors and switching converters.
 
 ## Next
 
-Next in this topic: *Rectifier, relay driver, buck converter and active filter*. Or pick another one from the *tutorial overview*.
+Next in this topic: [Rectifier, relay driver, buck converter and active filter](tutorial_circuits.md). Or pick another one from the [tutorial overview](tutorials.md).

@@ -3,13 +3,13 @@
 | | |
 |---|---|
 | **You will learn** | spark advance from a speed/load map (2-D lookup table), knock and the knock limit, a knock controller that retards and recovers, noisy sensors |
-| **Before this** | *Idle speed control*, *Lambda control and fuel trims* |
+| **Before this** | [Idle speed control](tutorial_idle.md), [Lambda control and fuel trims](tutorial_lambda.md) |
 | **Level and time** | intermediate, about 30 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/ignition_knock.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Powertrain and engine control ▸ Engine management (*all tutorials*) |
+| **Topic** | Powertrain and engine control ▸ Engine management ([all tutorials](tutorials.md)) |
 
 This tutorial follows `examples/ignition_knock.py`. It is the third part of the engine-control series, after
-*idle speed control* and *lambda control*.
+[idle speed control](tutorial_idle.md) and [lambda control](tutorial_lambda.md).
 
 ```bash
 uv run python examples/ignition_knock.py
@@ -66,4 +66,4 @@ To try one: change the value in the **Model Workspace** tab (double-click it), o
 
 ## Next
 
-Next in this topic: *Wall wetting and learned fuel trims*. Or pick another one from the *tutorial overview*.
+Next in this topic: [Wall wetting and learned fuel trims](tutorial_fuel_film.md). Or pick another one from the [tutorial overview](tutorials.md).

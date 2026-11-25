@@ -67,6 +67,7 @@ class PropertyPanel(QWidget):
         self.subtitle.setObjectName("muted")
         self.help_button = QPushButton("?")
         self.help_button.setFixedSize(30, 28)
+        self.help_button.setProperty("compact", True)
         self.help_button.setToolTip("Help for this block (F1)")
         self.help_button.clicked.connect(lambda: self.block and self.helpRequested.emit(self.block.type_id))
         header = QHBoxLayout()
@@ -96,6 +97,7 @@ class PropertyPanel(QWidget):
         scroll.setWidgetResizable(True)
         scroll.setWidget(self.form_host)
         scroll.setFrameShape(QScrollArea.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # the fields grow instead
 
         self.placeholder = QLabel(
             "Select a block to edit its parameters.\n\nTip: double-click a block in the library, "
@@ -309,6 +311,7 @@ class PropertyPanel(QWidget):
             path_edit = QLineEdit(str(value))
             browse = QPushButton("…")
             browse.setFixedWidth(30)
+            browse.setProperty("compact", True)
             browse.setToolTip("Choose a file")
             path_edit.editingFinished.connect(lambda name=p.name, le=path_edit: self._apply(name, le.text().strip()))
             browse.clicked.connect(lambda _c=False, name=p.name, le=path_edit: self._browse(name, le))

@@ -7,7 +7,7 @@ maps Simulink names to Nervus names.
 
 | Simulink | Nervus |
 |---|---|
-| model (`.slx`) | `Diagram`, saved as a `.nervus` JSON file (*Model files*) |
+| model (`.slx`) | `Diagram`, saved as a `.nervus` JSON file ([Model files](model_files.md)) |
 | Model Configuration Parameters | Simulation → Settings, `diagram.settings` (`SimulationSettings`) |
 | `sim('model')` | `simulate(diagram)`, or ▶ Run in the editor |
 | `out.logsout`, To Workspace | `SimResult`: `res["block"]`; every block output is logged. `ToWorkspace(variable=...)` |
@@ -16,7 +16,7 @@ maps Simulink names to Nervus names.
 | ode45 / ode23 / ode15s | `RK45` / `RK23` / `BDF` or `LSODA` |
 | ode4 / ode1 (fixed step) | `rk4` / `euler` |
 | zero-crossing detection | the same, per block, with a chattering (Zeno) guard |
-| Model Workspace, `Simulink.Parameter` | Model Workspace variables with unit, min, max, description (*Workspace*) |
+| Model Workspace, `Simulink.Parameter` | Model Workspace variables with unit, min, max, description ([Workspace](workspace.md)) |
 | parameter sets / data dictionary `.sldd` | parameter sets (`.nervcal` files) |
 | `.mat` results | `res.to_mat("run.mat")`; results also save as `.nervres` |
 
@@ -24,7 +24,7 @@ maps Simulink names to Nervus names.
 
 | Simulink | Nervus |
 |---|---|
-| Subsystem | Subsystem (*Subsystems*) |
+| Subsystem | Subsystem ([Subsystems](subsystems.md)) |
 | Mask, mask parameters, mask icon | Edit Mask…: mask parameters, icon text, description |
 | Enabled Subsystem (held / reset) | Subsystem with *enable_port* and *when_enabled* |
 | Triggered Subsystem (rising / falling / either) | Subsystem with *trigger* |
@@ -32,26 +32,26 @@ maps Simulink names to Nervus names.
 | Atomic Subsystem with a sample time | Subsystem with *sample_time* (one ECU task) |
 | Rate Transition, "single-tasking" / "multitasking" code | Rate Transition block; `generate_c(..., tasks=True)` for one function per task |
 | Variant Subsystem, variant conditions | Variants…: conditions such as `ENGINE == 2` |
-| Library (`.slx` library), library links | Component libraries (`.nervlib`), linked subsystems (*Libraries*) |
+| Library (`.slx` library), library links | Component libraries (`.nervlib`), linked subsystems ([Libraries](libraries.md)) |
 | Flip block (Ctrl+I), rotate block (Ctrl+R) | Flip Block (Ctrl+Shift+F), Rotate Block (Ctrl+Shift+R) |
-| Stateflow chart | State Chart block with a text definition (*State machines*) |
-| Simscape (Electrical, rotational mechanics, thermal) | physical blocks joined by links (*Physical modelling*) |
+| Stateflow chart | State Chart block with a text definition ([State machines](statecharts.md)) |
+| Simscape (Electrical, rotational mechanics, thermal) | physical blocks joined by links ([Physical modelling](physical.md)) |
 | LTspice / SPICE netlists | File → Import SPICE Netlist…, `nervus.spice` |
 | MATLAB Function block | Python Function block (with a *parameters* vector) |
-| S-Function | a Python `Block` subclass (*Writing blocks*) |
+| S-Function | a Python `Block` subclass ([Writing blocks](https://ikjbi.github.io/nervus/latest/developer/custom-blocks/)) |
 
 ## Code generation and verification
 
 | Simulink | Nervus |
 |---|---|
-| Embedded Coder / Simulink Coder | Code → Generate C (Ctrl+B): `model.c/.h`, report, A2L (*C code generation*) |
-| fixed-point designer, `fixdt` | data types `int8` … `uint32`, `fixdt(1,16,8)`, bit-true simulation (*Data types*) |
+| Embedded Coder / Simulink Coder | Code → Generate C (Ctrl+B): `model.c/.h`, report, A2L ([C code generation](codegen.md)) |
+| fixed-point designer, `fixdt` | data types `int8` … `uint32`, `fixdt(1,16,8)`, bit-true simulation ([Data types](datatypes.md)) |
 | SIL testing, back-to-back | `back_to_back()`: compiles the C and compares it with the simulation |
-| Simulink Test, Test Manager | test cases stored in the model; Test Manager panel (*Test cases*) |
-| Simulink Coverage | model coverage of decisions (*Verification*) |
+| Simulink Test, Test Manager | test cases stored in the model; Test Manager panel ([Test cases](testing.md)) |
+| Simulink Coverage | model coverage of decisions ([Verification](verification.md)) |
 | Model Advisor | Model Advisor (Ctrl+Shift+A) |
-| Linear Analysis Tool, Bode, margins | Analysis → Linear Analysis (Ctrl+L) (*Linear analysis*) |
-| Vehicle Network Toolbox, CAN Pack / Unpack | CAN Pack / CAN Unpack with DBC files (*CAN*) |
+| Linear Analysis Tool, Bode, margins | Analysis → Linear Analysis (Ctrl+L) ([Linear analysis](analysis.md)) |
+| Vehicle Network Toolbox, CAN Pack / Unpack | CAN Pack / CAN Unpack with DBC files ([CAN](can.md)) |
 
 ## Blocks
 

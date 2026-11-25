@@ -3,14 +3,14 @@
 | | |
 |---|---|
 | **You will learn** | range checks on a sensor signal, open circuit and short to ground (P0117/P0118), debouncing, substitute values for limp-home, fault injection in a test |
-| **Before this** | *An NTC temperature sensor interface* |
+| **Before this** | [An NTC temperature sensor interface](tutorial_ntc_sensor.md) |
 | **Level and time** | intermediate, about 30 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/ntc_sensor.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | ECU software, communication and diagnostics ▸ Diagnostics (*all tutorials*) |
+| **Topic** | ECU software, communication and diagnostics ▸ Diagnostics ([all tutorials](tutorials.md)) |
 
 Sensors and their wiring fail: a connector corrodes open, a chafed wire touches the engine block. The ECU must
 notice, store a trouble code, and keep the engine running with a sensible **substitute value**. This tutorial uses
-the coolant temperature sensor of *the NTC tutorial* (`examples/ntc_sensor.py`) and breaks it.
+the coolant temperature sensor of [the NTC tutorial](tutorial_ntc_sensor.md) (`examples/ntc_sensor.py`) and breaks it.
 
 ```bash
 uv run python examples/ntc_sensor.py
@@ -56,4 +56,4 @@ The model's three test cases check the normal warm-up and both faults; run them 
 
 ## Next
 
-Next in this topic: *From continuous to discrete: sample times*. Or pick another one from the *tutorial overview*.
+Next in this topic: [From continuous to discrete: sample times](tutorial_discrete_control.md). Or pick another one from the [tutorial overview](tutorials.md).

@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | the power balance of battery, alternator and loads, alternator output versus engine speed, an electrical energy management function (idle boost and load shedding) as a State Chart |
-| **Before this** | *Starter motor and electronic throttle* |
+| **Before this** | [Starter motor and electronic throttle](tutorial_physical.md) |
 | **Level and time** | intermediate, about 35 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/charging_system.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Electrics and electronics ▸ Vehicle electrical system (*all tutorials*) |
+| **Topic** | Electrics and electronics ▸ Vehicle electrical system ([all tutorials](tutorials.md)) |
 
 Every car's electrical system is a balance between the **alternator**, the **battery** and the **loads**. On a cold,
 dark winter evening the loads are high and the alternator, turning slowly at idle, cannot keep up; the battery makes
@@ -72,4 +72,4 @@ full.
 
 ## Next
 
-Next in this topic: *An NTC temperature sensor interface*. Or pick another one from the *tutorial overview*.
+Next in this topic: [An NTC temperature sensor interface](tutorial_ntc_sensor.md). Or pick another one from the [tutorial overview](tutorials.md).

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import math
+from bisect import bisect_right
 from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -42,6 +44,42 @@ def locate(x: Array, bp: Array, interpolation: str, extrapolation: str) -> tuple
     elif interpolation == "flat":
         f = np.where(f >= 1.0, 1.0, 0.0) if extrapolation == "clip" else np.where(x >= bp[-1], 1.0, 0.0)
     return i, f
+
+
+def locate_scalar(x: float, bp: list[float], interpolation: str, extrapolation: str) -> tuple[int, float]:
+    """:func:`locate` for one input, in plain Python (several times faster than numpy for a single value)."""
+    n = len(bp)
+    i = min(max(bisect_right(bp, x) - 1, 0), n - 2)
+    f = (x - bp[i]) / (bp[i + 1] - bp[i])
+    if extrapolation == "clip":
+        f = min(max(f, 0.0), 1.0)
+    if interpolation == "nearest":
+        f = 1.0 if min(max(f, 0.0), 1.0) >= 0.5 else 0.0
+    elif interpolation == "flat":
+        f = (1.0 if f >= 1.0 else 0.0) if extrapolation == "clip" else (1.0 if x >= bp[-1] else 0.0)
+    return i, f
+
+
+class _Lists:
+    """The table parameters as Python lists for the scalar path, converted again only when a parameter changes."""
+
+    def __init__(self, *names: str, matrix: str = "") -> None:
+        self.names = names
+        self.matrix = matrix  # the parameter that stays 2-D (a map's table); the others are flattened
+        self.key: tuple[Any, ...] = ()
+        self.data: tuple[Any, ...] = ()
+
+    def get(self, params: dict[str, Any]) -> tuple[Any, ...]:
+        key = tuple(params[n] for n in self.names)
+        if len(key) != len(self.key) or any(a is not b for a, b in zip(key, self.key, strict=True)):
+            self.data = tuple(
+                np.atleast_2d(np.asarray(v, dtype=float)).tolist()
+                if n == self.matrix
+                else np.asarray(v, dtype=float).ravel().tolist()
+                for n, v in zip(self.names, key, strict=True)
+            )
+            self.key = key  # holds the parameter values, so a new value can never have an old one's identity
+        return self.data
 
 
 @register
@@ -84,8 +122,15 @@ class Lookup1D(Block):
             raise ParameterError(f"table has {tab.size} values but there are {bp.size} breakpoints")
 
     def outputs(self, t: float, u: Sequence[Array], xc: Array, xd: Array) -> list[Array]:
+        x = u[0]
+        if x.size == 1:
+            if not hasattr(self, "_lists"):
+                self._lists = _Lists("breakpoints", "table")
+            bp_, tab_ = self._lists.get(self.params)
+            k, g = locate_scalar(float(x.flat[0]), bp_, self.params["interpolation"], self.params["extrapolation"])
+            return [np.full(x.shape, tab_[k] + g * (tab_[k + 1] - tab_[k]))]
         bp, tab = self._data()
-        i, f = locate(u[0], bp, self.params["interpolation"], self.params["extrapolation"])
+        i, f = locate(x, bp, self.params["interpolation"], self.params["extrapolation"])
         return [tab[i] + f * (tab[i + 1] - tab[i])]
 
     def coverage_outcomes(self) -> list[str]:
@@ -153,10 +198,19 @@ class Lookup2D(Block):
         return [broadcast_widths(in_widths)]
 
     def outputs(self, t: float, u: Sequence[Array], xc: Array, xd: Array) -> list[Array]:
-        r, c, tab = self._data()
         w = self.out_widths[0]
-        x0, x1 = np.broadcast_to(u[0], (w,)), np.broadcast_to(u[1], (w,))
         interp, extrap = self.params["interpolation"], self.params["extrapolation"]
+        if w == 1 and u[0].size == 1 and u[1].size == 1:
+            if not hasattr(self, "_lists"):
+                self._lists = _Lists("row_breakpoints", "column_breakpoints", "table", matrix="table")
+            rl, cl, tl = self._lists.get(self.params)
+            a, fa = locate_scalar(float(u[0].flat[0]), rl, interp, extrap)
+            b, fb = locate_scalar(float(u[1].flat[0]), cl, interp, extrap)
+            lo, hi = tl[a], tl[a + 1]
+            v = (1 - fa) * (1 - fb) * lo[b] + (1 - fa) * fb * lo[b + 1] + fa * (1 - fb) * hi[b] + fa * fb * hi[b + 1]
+            return [np.array([v])]
+        r, c, tab = self._data()
+        x0, x1 = np.broadcast_to(u[0], (w,)), np.broadcast_to(u[1], (w,))
         i, fr = locate(x0, r, interp, extrap)
         j, fc = locate(x1, c, interp, extrap)
         y = (

@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **You will learn** | on/off control with hysteresis, a thermal model with a lookup table, sensor filtering and its delay, switching rate versus temperature swing |
-| **Before this** | *Your first model: a cruise control* |
+| **Before this** | [Your first model: a cruise control](tutorial_first_model.md) |
 | **Level and time** | beginner, about 25 minutes |
 | **Follow along** | start the editor (`uv run nervus`), **File ▸ Open** `examples/coolant_fan.nervus`, press **▶** and double-click the scopes; the figures below come from the same model |
-| **Topic** | Powertrain and engine control ▸ Engine management (*all tutorials*) |
+| **Topic** | Powertrain and engine control ▸ Engine management ([all tutorials](tutorials.md)) |
 
 `examples/coolant_fan.py` is one of the simplest and most common ECU functions: switch the electric radiator fan
 on when the coolant gets hot. It shows why on/off control needs **hysteresis**, and what a sensor filter does to a
@@ -55,4 +55,4 @@ Run the test case in the **Test Manager** after each change: it checks that the 
 
 ## Next
 
-Next in this topic: *Idle speed control*. Or pick another one from the *tutorial overview*.
+Next in this topic: [Idle speed control](tutorial_idle.md). Or pick another one from the [tutorial overview](tutorials.md).

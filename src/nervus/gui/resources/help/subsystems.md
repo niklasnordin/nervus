@@ -48,7 +48,7 @@ is such a task:
 - Blocks with continuous states (Integrator, Transfer Function) are not allowed inside. Use their discrete
   versions.
 - The block shows its period (⏱ 10 ms). In generated C the multirate scheduler runs each task's blocks at
-  its rate, or, with *one function per task*, each task becomes its own C function (see C code generation).
+  its rate, or, with *one function per task*, each task becomes its own C function (see [C code generation](codegen.md)).
 
 So you set the period in one place, and every block in the task follows it: change `sample_time` to
 `"Ts_fast"` and the whole task moves with the workspace variable.
