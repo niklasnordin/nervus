@@ -49,7 +49,7 @@ overshoots by 0.4 %, and the continuous one not at all.
 
 Now change `T` in the workspace and run again. The figure shows four runs:
 
-![](figures/discrete_control.png)
+![](../images/blocks/discrete_control.png)
 
 | T | T / τ<sub>cl</sub> | Overshoot | What happens |
 |---|---|---|---|
@@ -98,7 +98,7 @@ The script `examples/discrete_control.py` computes the overshoot for each sample
 Sampling also fails when the **signal** is too fast for the sample time. Open `aliasing.nervus`: a sensor
 signal with a 45 Hz vibration (a sine) is read every 20 ms, that is at 50 Hz.
 
-![](figures/aliasing.png)
+![](../images/blocks/aliasing.png)
 
 The samples trace a smooth **5 Hz** wave, and nothing in the samples tells it apart from a real 5 Hz signal. That
 is **aliasing**. A frequency $f$ above half the sample rate (the **Nyquist frequency**, $f_s/2$) shows up at

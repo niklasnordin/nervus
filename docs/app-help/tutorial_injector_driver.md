@@ -29,7 +29,7 @@ uv run python examples/injector_driver.py
 
 The software commands a **3 ms** pulse. At 3.5 g/s that should be 10.5 mg of fuel.
 
-![](figures/injector_driver.png)
+![](../images/blocks/injector_driver.png)
 
 ## Opening: the battery voltage matters
 

@@ -75,8 +75,8 @@ maps Simulink names to Nervus names.
 
 ## Importing a Simulink model
 
-**File ▸ Import Simulink Model…** opens an `.slx` file as a new Nervus model (save it as `.nervus`). From Python:
-`model = nervus.simulink.read_slx("controller.slx")`.
+**File ▸ Import Simulink Model…** opens an `.slx` file, or an `.mdl` file (Simulink's older text format), as a new
+Nervus model (save it as `.nervus`). From Python: `model = nervus.simulink.read_model("controller.slx")`.
 
 - The common blocks are translated with their parameters and positions: sources (Constant, Step, Sine Wave, Ramp,
   Clock), math (Gain, Sum, Product, Bias, Abs, MinMax), continuous and discrete blocks (Integrator, Transfer Fcn,
@@ -103,4 +103,5 @@ them in the **Data Inspector** next to Nervus's.
 - **Models are text.** `.nervus` files are JSON and diff well in git.
 - **Charts are also text.** State charts are drawn in the chart editor and stored in a small text language, which
   diffs well and can be edited directly.
-- **Stateflow charts and `.mdl` files are not imported.** `.slx` models are (see above); charts have to be rebuilt.
+- **Stateflow charts are not imported.** `.slx` and `.mdl` models are (see above); charts become empty subsystems
+  and have to be rebuilt as State Chart blocks.

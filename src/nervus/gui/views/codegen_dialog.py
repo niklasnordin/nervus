@@ -78,6 +78,14 @@ class CodegenDialog(QDialog):
             if controller.misra_available()
             else "Install cppcheck (brew install cppcheck, apt install cppcheck) to check the code against MISRA C"
         )
+        self.coverage_button = QPushButton("C coverage (tests)")
+        self.coverage_button.setEnabled(controller.coverage_available())
+        self.coverage_button.setToolTip(
+            "Run the model's test cases through this code (compiled with gcov) and show which lines and branches "
+            "they execute"
+            if controller.coverage_available()
+            else "Needs a C compiler and gcov"
+        )
         self.save_button = QPushButton("Save to folder…")
         self.save_button.setObjectName("primary")
         self.report_button = QPushButton("Open report")
@@ -88,6 +96,7 @@ class CodegenDialog(QDialog):
         buttons = QHBoxLayout()
         buttons.addWidget(self.sil_button)
         buttons.addWidget(self.misra_button)
+        buttons.addWidget(self.coverage_button)
         buttons.addWidget(self.copy_button)
         buttons.addStretch(1)
         buttons.addWidget(self.report_button)
@@ -103,6 +112,7 @@ class CodegenDialog(QDialog):
 
         self.sil_button.clicked.connect(self.run_sil)
         self.misra_button.clicked.connect(self.run_misra)
+        self.coverage_button.clicked.connect(lambda _c=False: self.run_coverage())
         self.save_button.clicked.connect(self._save)
         self.report_button.clicked.connect(self._open_report)
         self.copy_button.clicked.connect(self._copy)
@@ -169,6 +179,25 @@ class CodegenDialog(QDialog):
             shown = "   ".join(str(f) for f in findings[:3])
             more = f"   … and {len(findings) - 3} more" if len(findings) > 3 else ""
             self.sil_label.setText(f"✗ MISRA C:2012: {len(findings)} finding(s): {shown}{more}")
+
+    def run_coverage(self, open_report: bool = True) -> Path | None:
+        """C code coverage by the test cases; the annotated report opens in the browser."""
+        import tempfile
+
+        self.sil_label.setText("Running the test cases through the C code…")
+        QGuiApplication.processEvents()
+        cov = self.controller.c_coverage(self.target, self.code)
+        if cov is None:
+            self.sil_label.setText("The C coverage could not run; see Diagnostics.")
+            return None
+        (lh, lt), (bh, bt) = cov.lines, cov.branch_counts
+        self.sil_label.setText(f"C coverage by {cov.runs} test case(s): lines {cov.line_percent:.0f} % ({lh}/{lt}), "
+                               f"branches {cov.branch_percent:.0f} % ({bh}/{bt})")  # fmt: skip
+        path = cov.save_html(Path(tempfile.mkdtemp()) / f"{self.code.name}_c_coverage.html",
+                             f"C code coverage — {self.code.name}")  # fmt: skip
+        if open_report:
+            webbrowser.open(path.as_uri())
+        return path
 
     def save_to(self, folder: str | Path) -> None:
         self.controller.save(self.code, folder)

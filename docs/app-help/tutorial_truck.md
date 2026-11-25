@@ -16,7 +16,7 @@ brake.
 uv run python examples/truck.py
 ```
 
-![](figures/truck.png)
+![](../images/blocks/truck.png)
 
 ## The climb
 

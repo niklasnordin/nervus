@@ -59,6 +59,11 @@ conditions shown (green) and, for the others, the evaluation a test still needs,
 permit: condition 2: needs (1, 0, 1) → 0 (the pair (1, 1, 1) → 1 / (1, 0, 1) → 0)
 ```
 
+State chart **transition guards** with several conditions count as decisions too, named after the transition
+(`modes: crank -> idle`); nested guards such as `a > 0.5 and (b > 0.5 or not c > 0.5)` are evaluated exactly, so
+masking is taken into account (with `c` false, `b` cannot change the result, and the report asks for an evaluation
+with `c` true).
+
 From Python: `cov.mcdc_percent`, `cov.condition_percent`, `cov.mcdc_missing()`.
 
 ## Requirements traceability

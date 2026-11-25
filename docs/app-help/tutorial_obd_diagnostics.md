@@ -37,7 +37,7 @@ Each monitor is a **Diagnostic Monitor** block, which implements what the OBD ru
 - **readiness**: the monitor reports *complete* once it has run, passed or failed. An inspection station checks
   that the monitors are ready before it trusts "no codes".
 
-![](figures/obd_ecu.png)
+![](../images/blocks/obd_ecu.png)
 
 ## Follow the scenario
 

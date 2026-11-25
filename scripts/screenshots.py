@@ -371,6 +371,15 @@ def signal_shots(win) -> None:  # type: ignore[no-untyped-def]
     ed.close()
 
 
+def about_shots(win) -> None:  # type: ignore[no-untyped-def]
+    """Help > About Nervus, on the Contributors tab."""
+    dlg = win.about()
+    dlg.tabs.setCurrentIndex(1)
+    QApplication.processEvents()
+    grab(dlg, "about-contributors.png")
+    dlg.close()
+
+
 def grab(widget: QWidget, name: str) -> None:
     QApplication.processEvents()
     widget.grab().save(str(OUT / name))
@@ -392,6 +401,7 @@ def main() -> None:
         ["requirements"],
         ["chart"],
         ["signals"],
+        ["about"],
     ):  # only the newest shots
         from nervus.gui.views.main_window import MainWindow
 
@@ -401,7 +411,7 @@ def main() -> None:
         win.show()
         shots = {"console": console_and_can_shots, "dictionary": dictionary_shots, "first": first_model_shots,
                  "requirements": requirements_shots, "chart": chart_shots,
-                 "signals": signal_shots}  # fmt: skip
+                 "signals": signal_shots, "about": about_shots}  # fmt: skip
         shots[sys.argv[1]](win)
         win.editor.undo_stack.setClean()
         win.close()

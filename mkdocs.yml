@@ -1,6 +1,8 @@
 site_name: Nervus
 site_description: Open-source block-diagram modeling and simulation in Python
+site_url: https://ikjbi.github.io/nervus/
 repo_url: https://github.com/ikjbi/nervus
+edit_uri: edit/main/docs/
 theme:
   name: material
   features:
@@ -19,10 +21,15 @@ markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences
   - toc: { permalink: true }
+extra:
+  version:
+    provider: mike  # the version selector: one site per release (see .github/workflows/docs.yml)
+    default: latest
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 nav:
   - Home: index.md
+  - Roadmap to 1.0: roadmap.md
   - User guide:
       - Getting started: getting-started.md
       - The editor: editor.md

@@ -65,12 +65,22 @@ def test_shared_pages_are_up_to_date() -> None:
         )
 
 
+def _import_script(name: str):  # type: ignore[no-untyped-def]
+    spec = importlib.util.spec_from_file_location(name, EXAMPLES.parent / "scripts" / f"{name}.py")
+    assert spec is not None and spec.loader is not None
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
 def test_app_help_copies_are_up_to_date() -> None:
     """docs/app-help mirrors the in-app help. Regenerate with: uv run python scripts/gen_block_reference.py"""
+    gen = _import_script("gen_block_reference")
     src = EXAMPLES.parent / "src" / "nervus" / "gui" / "resources" / "help"
     out = EXAMPLES.parent / "docs" / "app-help"
     for page in src.glob("*.md"):
-        assert (out / page.name).read_text() == page.read_text(), f"docs/app-help/{page.name} is stale"
+        site = re.sub(r"\]\(figures/([^)]+)\)", gen._site_image, page.read_text())  # images: the site's own copies
+        assert (out / page.name).read_text() == site, f"docs/app-help/{page.name} is stale"
 
 
 def test_throttle_calibration_file() -> None:

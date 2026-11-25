@@ -134,29 +134,53 @@ class EditorTour(QWidget):
         # The size hint ignores the fixed width: take the height the text needs at that width.
         height = self.bubble.heightForWidth(BUBBLE_WIDTH)
         b = QSize(BUBBLE_WIDTH, height if height > 0 else self.bubble.sizeHint().height())
-        area = self.rect()
-        if self.hole is None:
-            pos = QPoint((area.width() - b.width()) // 2, (area.height() - b.height()) // 2)
+        area = self._visible_area()
+
+        def fit(p: QPoint) -> QRect:
+            """The bubble at ``p``, moved into the visible area."""
+            x = max(area.left(), min(p.x(), area.right() + 1 - b.width()))
+            y = max(area.top(), min(p.y(), area.bottom() + 1 - b.height()))
+            return QRect(QPoint(x, y), b)
+
+        centre = fit(QPoint(area.center().x() - b.width() // 2, area.center().y() - b.height() // 2))
+        h = self.hole
+        if h is None:
+            rect = centre
         else:
-            h = self.hole
-            # Beside the highlighted part where there is room (right, left, below, above), else inside it.
-            candidates = [
-                QPoint(h.right() + 12, h.top()),
-                QPoint(h.left() - 12 - b.width(), h.top()),
-                QPoint(h.left(), h.bottom() + 12),
-                QPoint(h.left(), h.top() - 12 - b.height()),
+            # Beside the highlighted part where there is room: right, left, above, inside a large part near its
+            # top (the canvas), below. Below comes last: the bottom of a tall window may be off the screen.
+            beside = [
+                fit(QPoint(h.right() + 12, h.top())),
+                fit(QPoint(h.left() - 12 - b.width(), h.top())),
+                fit(QPoint(h.left(), h.top() - 12 - b.height())),
             ]
-            pos = next(
-                (p for p in candidates if area.contains(QRect(p, b))),
-                QPoint(h.center().x() - b.width() // 2, h.center().y() - b.height() // 2),
-            )
-            pos.setX(max(8, min(pos.x(), area.width() - b.width() - 8)))
-            pos.setY(max(8, min(pos.y(), area.height() - b.height() - 8)))
-        self.bubble.setGeometry(QRect(pos, b))
+            inside = fit(QPoint(h.left() + 24, h.top() + 24))
+            below = fit(QPoint(h.left(), h.bottom() + 12))
+            fitting = [r for r in beside if not r.intersects(h)]
+            fitting += [inside] if h.contains(inside) else []
+            fitting += [below] if not below.intersects(h) else []
+            rect = fitting[0] if fitting else centre
+        self.bubble.setGeometry(rect)
         self.update()
 
+    def _visible_area(self) -> QRect:
+        """Where the bubble may go: the window less a margin, and only the part on the screen (a window taller
+        than the screen, or one partly under a panel, hides its bottom and with it the Next button)."""
+        area = self.rect().adjusted(8, 8, -8, -8)
+        screen = self.window_.screen()
+        if screen is not None:
+            on_screen = screen.availableGeometry().translated(-self.mapToGlobal(QPoint(0, 0)))
+            visible = area.intersected(on_screen.adjusted(8, 8, -8, -8))
+            if visible.width() >= BUBBLE_WIDTH and visible.height() >= 120:
+                return visible
+        return area
+
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:
-        if watched is self.window_ and event.type() in (QEvent.Type.Resize, QEvent.Type.LayoutRequest):
+        if watched is self.window_ and event.type() in (
+            QEvent.Type.Resize,
+            QEvent.Type.Move,
+            QEvent.Type.LayoutRequest,
+        ):
             self._place()
         return False
 

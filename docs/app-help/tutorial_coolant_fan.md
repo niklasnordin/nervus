@@ -29,7 +29,7 @@ stays there, and drops back to 30 %.
 The **ECU** reads the temperature sensor every 10 ms, smooths it with a first-order filter (2 s), and switches
 the fan with a **Relay** block: on above 98 °C, off below 92 °C.
 
-![](figures/coolant_fan.png)
+![](../images/blocks/coolant_fan.png)
 
 ## Why hysteresis
 

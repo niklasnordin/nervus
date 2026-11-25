@@ -1,0 +1,73 @@
+# Standalone Nervus applications (no Python needed), built with PyInstaller on macOS, Windows and Linux.
+# A release tag vX.Y.Z attaches them to the GitHub Release; "Run workflow" (Actions tab) builds them for a test.
+name: Installers
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write  # attach the installers to the release
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            asset: Nervus-macOS.dmg
+          - os: windows-latest
+            asset: Nervus-Windows.zip
+          - os: ubuntu-latest
+            asset: Nervus-Linux.zip
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Build
+        shell: bash
+        run: |
+          uv sync --extra gui --extra can --extra mdf --extra fmi --python 3.12
+          cd packaging
+          uv run --with pyinstaller pyinstaller --noconfirm --log-level WARN --distpath ../dist nervus.spec
+      - name: Smoke test (the bundled command line)
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then  # a windowed .exe has no console to print to: it must exist
+            test -f dist/Nervus/Nervus.exe
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            dist/Nervus.app/Contents/MacOS/Nervus --version
+          else
+            dist/Nervus/Nervus --version
+          fi
+      - name: Package
+        shell: bash
+        run: |
+          cd dist
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            hdiutil create -volname Nervus -srcfolder Nervus.app -ov -format UDZO "${{ matrix.asset }}"
+          elif [ "$RUNNER_OS" = "Windows" ]; then
+            7z a "${{ matrix.asset }}" Nervus
+          else
+            zip -qr "${{ matrix.asset }}" Nervus
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.asset }}
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for i in 1 2 3 4 5 6 7 8 9 10; do  # the release is created by the release workflow; wait for it
+            gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 && break
+            sleep 60
+          done
+          gh release upload "$GITHUB_REF_NAME" "dist/${{ matrix.asset }}" --clobber

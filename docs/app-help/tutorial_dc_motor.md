@@ -28,7 +28,7 @@ system:
 $$ \frac{\omega(s)}{V(s)} = \frac{K}{\tau s + 1}, \qquad K = \frac{1}{k_m} = 23.8 \ \tfrac{\text{rad/s}}{\text{V}},
 \qquad \tau = \frac{R J}{k_m^2} = 0.10 \text{ s} $$
 
-![](figures/lab_dc_motor.png)
+![](../images/blocks/lab_dc_motor.png)
 
 ## Step 1: identify the motor
 

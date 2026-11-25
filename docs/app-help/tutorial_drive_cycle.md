@@ -41,7 +41,7 @@ $\tanh(10\,v)$ instead of a sign function, so it fades out smoothly at standstil
 
 ## Results
 
-![](figures/drive_cycle.png)
+![](../images/blocks/drive_cycle.png)
 
 | | 1300 kg | 1800 kg |
 |---|---|---|

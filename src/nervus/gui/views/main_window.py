@@ -25,7 +25,6 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from nervus import __version__
 from nervus.core import Block, Connection, Diagram, Link, NervusError
 from nervus.core.expressions import format_value, parse_value
 from nervus.gui.controllers import (
@@ -38,6 +37,7 @@ from nervus.gui.controllers import (
 from nervus.gui.controllers.test_controller import TestController
 from nervus.gui.models import DiagramModel, SimulationModel, SimulationState
 from nervus.gui.theme import ThemeManager, ThemeMode, current_theme
+from nervus.gui.views.about_dialog import AboutDialog
 from nervus.gui.views.advisor_dialog import AdvisorDialog
 from nervus.gui.views.analysis_dialog import AnalysisDialog
 from nervus.gui.views.can_trace_dialog import CanTraceDialog
@@ -202,7 +202,7 @@ class MainWindow(QMainWindow):
             "Import Simulink Model…",
             self.import_simulink,
             None,
-            "Open a Simulink .slx model (the common blocks are translated; a report lists the rest)",
+            "Open a Simulink .slx or .mdl model (the common blocks are translated; a report lists the rest)",
         )
         self.act_import_spice = self._action(
             "Import SPICE Netlist…", self.import_spice, None, "Open a .cir/.net netlist (e.g. from LTspice)"
@@ -792,11 +792,11 @@ class MainWindow(QMainWindow):
         return self.save_file_as() if self.diagram_model.file_path is None else False
 
     def import_simulink(self, path: str | None = None, show_report: bool = True) -> bool:
-        """Open a Simulink .slx model as a new (unsaved) model, and show what was not translated."""
+        """Open a Simulink .slx or .mdl model as a new (unsaved) model, and show what was not translated."""
         if path is None:
             if not self._confirm_discard():
                 return False
-            path, _ = QFileDialog.getOpenFileName(self, "Import Simulink model", "", "Simulink models (*.slx)")
+            path, _ = QFileDialog.getOpenFileName(self, "Import Simulink model", "", "Simulink models (*.slx *.mdl)")
             if not path:
                 return False
         model = self.files.import_simulink(path)
@@ -1226,14 +1226,10 @@ class MainWindow(QMainWindow):
         else:
             self.show_help()
 
-    def about(self) -> None:
-        QMessageBox.about(
-            self,
-            "About Nervus",
-            f"<h3>Nervus {__version__}</h3>"
-            "<p>Open-source block-diagram modeling and simulation in Python.</p>"
-            "<p>MIT License · <a href='https://github.com/ikjbi/nervus'>github.com/ikjbi/nervus</a></p>",
-        )
+    def about(self) -> AboutDialog:
+        dlg = AboutDialog(self)
+        dlg.show()
+        return dlg
 
     # ------------------------------------------------------------------ lifecycle
 

@@ -54,7 +54,7 @@ For one map, use a **1-D** or **2-D Lookup Table**. When several maps share an a
 block per axis and an **Interpolation using Prelookup** block per map: the breakpoint search runs once, and
 every map reuses its result (index *k* and fraction *f*).
 
-![Prelookup and Interpolation](figures/prelookup.png)
+![Prelookup and Interpolation](../images/blocks/prelookup.png)
 
 Put the axes and tables in the workspace, so they can be calibrated and swapped with parameter sets:
 

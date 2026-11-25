@@ -54,6 +54,23 @@ class CodegenController(QObject):
             self.errorOccurred.emit(str(exc), ())
             return None
 
+    @staticmethod
+    def coverage_available() -> bool:
+        from nervus.codegen.c_coverage import gcov_path
+        from nervus.codegen.sil import find_compiler
+
+        return find_compiler() is not None and gcov_path() is not None
+
+    def c_coverage(self, target: Diagram | Block, code: GeneratedCode) -> Any:
+        """Coverage of the generated code by the model's test cases; None if it could not run (reported)."""
+        from nervus.codegen.c_coverage import coverage_of_tests
+
+        try:
+            return coverage_of_tests(self.model.root, target, integer_only=code.integer_only, tasks=bool(code.tasks))
+        except NervusError as exc:
+            self.errorOccurred.emit(str(exc), tuple(getattr(exc, "blocks", ())))
+            return None
+
     def export_fmu(self, target: Diagram | Block, path: str | Path) -> Path | None:
         """Export ``target`` as an FMI 2.0 co-simulation FMU (generated C code, compiled for this platform)."""
         from nervus.codegen.fmu import export_fmu

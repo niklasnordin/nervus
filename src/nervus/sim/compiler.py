@@ -324,6 +324,8 @@ class CompiledModel:
                 cond = b.coverage_conditions()
                 if cond is not None:
                     cov.register_conditions(self.names[i], *cond)
+                for name, guard, n, evaluate in getattr(b, "coverage_decisions", lambda: [])():
+                    cov.register_conditions(f"{self.names[i]}: {name}", guard, n, evaluate)
 
     def collect_coverage(self, t: float, hits: frozenset[int] | None) -> None:
         """Record outcomes at a major step (discrete blocks only when they executed)."""
@@ -339,6 +341,8 @@ class CompiledModel:
             cov.hit(self.names[i], b.coverage_hits(t, u, self.y[i], self.xd[i]))
             if self.names[i] in cov.conditions:
                 cov.record_conditions(self.names[i], b.condition_values(u))
+            for name, conds in getattr(b, "decision_values", lambda: [])():
+                cov.record_conditions(f"{self.names[i]}: {name}", [conds])
 
     def check_monitors(self, t: float) -> bool:
         """Run Stop Simulation / Assertion blocks at a major step. Returns True if the run should stop."""

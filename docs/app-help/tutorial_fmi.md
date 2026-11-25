@@ -57,7 +57,7 @@ FMU's inputs and outputs; *parameters* sets the FMU's parameters, for example `K
 communication step (0: the FMU's default). `examples/fmi_plant.nervus` is the throttle model with the ECU subsystem
 replaced by the FMU:
 
-![](figures/fmi_exchange.png)
+![](../images/blocks/fmi_exchange.png)
 
 The responses differ during the fast tip-in by up to 13°, and peak and steady state are the same. The reason is the
 co-simulation itself: the FMU's output is available at the **end** of a communication step, so the controller acts

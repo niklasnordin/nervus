@@ -42,3 +42,16 @@ def test_open_example_menu(window) -> None:  # type: ignore[no-untyped-def]
     first = next(a for a in actions if "cruise_control.nervus" in a.text())
     first.trigger()
     assert window.diagram_model.root.name == "cruise_control"
+
+
+def test_c_coverage_button(window) -> None:  # type: ignore[no-untyped-def]
+    from nervus.codegen.c_coverage import gcov_path
+
+    if gcov_path() is None:
+        pytest.skip("needs gcov")
+    window.files.open(EXAMPLES / "throttle_ecu.nervus")
+    window.scene.select_blocks(["ECU"])
+    dlg = window.generate_code()
+    path = dlg.run_coverage(open_report=False)
+    assert path is not None and path.exists() and "lines 100 %" in dlg.sil_label.text()
+    dlg.close()

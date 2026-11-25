@@ -28,7 +28,7 @@ temperature from −40 °C to 87.5 °C in 0.5 °C steps, in one byte. On wires t
 - **Data Type Conversion** (*Signal Attributes*) converts a signal to a type, with a choice of *rounding*
   (`nearest`, `floor`, `ceil`, `zero`) and *overflow* (`saturate` or `wrap`):
 
-  ![Overflow and resolution](figures/datatype_conversion.png)
+  ![Overflow and resolution](../images/blocks/datatype_conversion.png)
 
 - **In**, **Constant**, **Gain**, **Sum**, **Product**, **Bias** and the **lookup tables** have an
   *output_type* parameter.

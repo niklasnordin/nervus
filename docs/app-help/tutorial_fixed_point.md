@@ -32,7 +32,7 @@ $q / 2^6$, so the resolution is 1/64 = 0.0156 kPa and the range 0 to 1024 kPa. T
 with its *output_type*; the Bias and the filter after it inherit it, exactly as in generated C code, where the
 blocks become integer arithmetic with shifts.
 
-![](figures/fixed_point_sensor.png)
+![](../images/blocks/fixed_point_sensor.png)
 
 ## What it costs
 

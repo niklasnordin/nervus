@@ -1,0 +1,47 @@
+# Publish the documentation to GitHub Pages (https://ikjbi.github.io/nervus/), one site per release with mike:
+# a push to main updates "dev"; a release tag vX.Y.Z publishes "X.Y" as "latest", the version the site opens with.
+# mike keeps the versions on the gh-pages branch, which Pages serves.
+name: Docs
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths: ["docs/**", "mkdocs.yml", ".github/workflows/docs.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write  # mike commits to the gh-pages branch
+
+concurrency:
+  group: pages
+  cancel-in-progress: false  # two deployments must not overwrite each other's commits
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # mike needs the gh-pages branch
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install
+        run: uv sync --only-group docs
+      - name: Check (strict)
+        run: NO_MKDOCS_2_WARNING=1 uv run --no-sync mkdocs build --strict --quiet
+      - name: Deploy
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          export NO_MKDOCS_2_WARNING=1
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            version="${GITHUB_REF_NAME#v}"
+            version="${version%.*}"  # 0.1.3 -> 0.1: one site per minor release
+            uv run --no-sync mike deploy --push --update-aliases "$version" latest
+            uv run --no-sync mike set-default --push latest
+          else
+            uv run --no-sync mike deploy --push dev
+          fi

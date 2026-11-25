@@ -17,7 +17,7 @@ uv run python examples/circuits.py     # simulates the four circuits, saves them
 uv run nervus examples/relay_driver.nervus
 ```
 
-![](figures/circuits.png)
+![](../images/blocks/circuits.png)
 
 ## 1. Rectifier with a smoothing capacitor (from a SPICE netlist)
 

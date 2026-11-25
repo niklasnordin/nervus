@@ -1,0 +1,40 @@
+# When a pull request is merged, credit its author in CONTRIBUTORS.md (and so in Help > About Nervus), from the
+# pull request's Credit section. Runs the repository's own script on main, never code from the pull request; the
+# pull request's text reaches the script through environment variables only.
+name: Credit contributors
+
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  credit:
+    if: github.event.pull_request.merged == true && github.event.pull_request.user.login != 'ikjbi'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Add the contributor
+        env:
+          LOGIN: ${{ github.event.pull_request.user.login }}
+          PR: ${{ github.event.pull_request.number }}
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          printf '%s' "$BODY" > "$RUNNER_TEMP/body.md"
+          python3 scripts/add_contributor.py --login "$LOGIN" --pr "$PR" --title "$TITLE" --body-file "$RUNNER_TEMP/body.md"
+      - name: Commit
+        env:
+          LOGIN: ${{ github.event.pull_request.user.login }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          git diff --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Credit @$LOGIN for #$PR [skip ci]"
+          git push

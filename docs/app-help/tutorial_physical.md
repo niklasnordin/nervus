@@ -16,7 +16,7 @@ uv run python examples/starter_motor.py
 uv run python examples/electronic_throttle.py
 ```
 
-![](figures/physical_models.png)
+![](../images/blocks/physical_models.png)
 
 ## Cranking: why ECUs must survive 8 V
 

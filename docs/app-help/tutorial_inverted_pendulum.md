@@ -41,7 +41,7 @@ so $q_x$ and $q_\theta$ say how much cart and angle errors cost, and $r$ how muc
 $q_\theta = 100$, $r = 1$ it gives $K = [-7.1,\ -57,\ -15,\ -11]$, stored in the workspace as `K_lqr` and used by
 the **K** gain block (matrix multiplication). The sensors are sampled every 2 ms.
 
-![](figures/lab_inverted_pendulum.png)
+![](../images/blocks/lab_inverted_pendulum.png)
 
 Run the model: the controller catches the 3° start, rejects the tap at 3 s (5 N for 0.1 s) and moves the cart to
 0.3 m at 5 s, settling within 2 % in 3.6 s, with the pendulum never more than 3° from upright and at most 4.3 N.

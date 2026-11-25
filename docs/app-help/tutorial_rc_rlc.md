@@ -46,7 +46,7 @@ With so little damping the step response **overshoots by 60 %** and rings at abo
 Bode plot has a **resonance peak** of +10 dB at $f_0$: the quality factor $Q = 1/(2\zeta) = 3.2$, the voltage across
 the capacitor at resonance is 3.2 times the input.
 
-![](figures/rc_rlc.png)
+![](../images/blocks/rc_rlc.png)
 
 The resistance decides the damping. **Critical damping** ($\zeta = 1$) needs $R = 2\sqrt{L/C} = 63$ Ω: the fastest
 response without overshoot. More resistance makes it **overdamped**: no overshoot, but slower.

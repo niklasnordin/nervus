@@ -60,7 +60,7 @@ table = monte_carlo(
 With the original `Ki` = 30 every car settles between 12.1 and 18.4 s: the requirement is met with margin. The
 settling time follows the mass closely (correlation 0.94); the drag hardly matters.
 
-![](figures/cruise_tolerance.png)
+![](../images/blocks/cruise_tolerance.png)
 
 ## Step 3: the trap of the average
 

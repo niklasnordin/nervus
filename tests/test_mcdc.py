@@ -63,3 +63,38 @@ def test_measured_in_a_simulation() -> None:
     text = cov.summary()
     assert "MC/DC 67 %" in text and "permit: condition 2" in text
     assert "Condition and MC/DC coverage" in cov.to_html()
+
+
+CHART = """
+input a, b, c
+output y = 0
+state off
+  entry: y = 0
+state on
+  entry: y = 1
+transition off -> on: a > 0.5 and (b > 0.5 or not c > 0.5)
+transition on -> off: a < 0.5
+"""
+
+
+def test_chart_guards() -> None:
+    """A transition guard with several conditions is a decision too; the nested and/or/not is evaluated exactly."""
+    from nervus.blocks import StateChart
+
+    d = Diagram("chart")
+    t = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
+    a = [[1], [0], [1], [0], [0], [0]]  # (a, b) = (1,1), then (1,0) with c = 0, then a = 0
+    b = [[1], [1], [0], [0], [0], [0]]
+    c = [[0], [0], [0], [0], [0], [0]]
+    chart = d.add(StateChart(definition=CHART, sample_time=0.1), name="ctl")
+    for k, (n, vals) in enumerate((("a", a), ("b", b), ("c", c))):
+        d.connect(d.add(FromWorkspace(time=t, data=vals, interpolation="hold"), name=n), (chart, k))
+    d.connect(chart, d.add(Scope(), name="scope"))
+    cov = Coverage()
+    simulate(d, 5.0, coverage=cov)
+    guard = cov.conditions["ctl: off -> on"]
+    assert guard.n == 3 and guard.operator == "a > 0.5 and (b > 0.5 or not c > 0.5)"
+    assert [guard.independent(i) for i in range(3)] == [True, False, False]
+    # b is masked while c is false (not c is true): to show b, a test needs c = 1
+    assert "(1, 0, 1) → 0" in guard.needed(1)
+    assert "ctl: off -> on" in cov.mcdc_missing()

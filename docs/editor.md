@@ -192,6 +192,12 @@ The in-app guide pages are also available here:
 [Workspace and calibrations](app-help/workspace.md) ·
 [Keyboard shortcuts](app-help/shortcuts.md)
 
+
+**Help ▸ About Nervus** shows the version and the versions of Python, Qt, NumPy and SciPy (**Copy for a bug
+report** puts them on the clipboard for an issue on GitHub), the links to the documentation and the source, the
+**contributors** with what each of them contributed, and the licence.
+
+![Help ▸ About Nervus, the Contributors tab](images/about-contributors.png)
 ## Troubleshooting
 
 **"Could not find the Qt platform plugin"** on macOS: some tools mark every file inside `.venv` as *hidden*,

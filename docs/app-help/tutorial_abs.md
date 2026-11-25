@@ -41,7 +41,7 @@ The **ABS ECU** is a State Chart running every 5 ms, the classic threshold algor
 
 Below 7 km/h the ABS stops controlling, as in real cars.
 
-![](figures/abs_braking.png)
+![](../images/blocks/abs_braking.png)
 
 ## Results
 

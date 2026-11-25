@@ -44,7 +44,7 @@ the spark by 3°; the retard then recovers by 1°/s:
 
 $$ r_{k+1} = \mathrm{clip}(r_k + 3°\cdot\text{knock}_k - 1°/\text{s}\cdot T_s,\ 0,\ 12°), \qquad \alpha = \alpha_{base}(n, \text{load}) - r $$
 
-![](figures/ignition_knock.png)
+![](../images/blocks/ignition_knock.png)
 
 At 4 s the car gets low-octane fuel, and the knock limit drops by 6° to 12°. The first combustions knock hard;
 the ECU retards, and from then on the advance makes a **sawtooth** just around the new limit. It creeps up at

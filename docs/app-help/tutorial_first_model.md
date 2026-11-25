@@ -44,7 +44,7 @@ in the table: select the block and edit **Name** at the top of the **Properties*
 
 Arrange them roughly like this, with `drag` below the main line:
 
-![](figures/first-model-1-blocks.png)
+![](../images/first-model-1-blocks.png)
 
 ## Step 2: connect the blocks
 
@@ -60,7 +60,7 @@ Make these 10 connections:
 `drag` points the wrong way for a feedback path: select it and press **Ctrl+Shift+F** (⌘⇧F on a Mac) to
 flip it, so its input is on the right. The lines route themselves around the blocks:
 
-![](figures/first-model-2-wired.png)
+![](../images/first-model-2-wired.png)
 
 > **Check your work:** The **Diagnostics** tab at the bottom says *No problems found* when every input is connected. If it lists an unconnected input, click the message: the block is selected for you.
 
@@ -94,13 +94,13 @@ help page.
 
 Finally set the **Stop time** in the toolbar to `40`.
 
-![](figures/first-model-3-parameters.png)
+![](../images/first-model-3-parameters.png)
 
 ## Step 4: run and look at the result
 
 Press **▶** (or **Ctrl+R**), then double-click the `scope`:
 
-![](figures/first-model-4-scope.png)
+![](../images/first-model-4-scope.png)
 
 The car accelerates at full force (the controller output is at its 4000 N limit), but it settles at
 **97.4 km/h**, not 100. Why? At 100 km/h the drag is 800 N, and a P controller only produces force when there
@@ -114,7 +114,7 @@ error. In the Model Workspace set **`Ki` = 30** and run again.
 
 Now open **Simulation ▸ Data Inspector** (**Ctrl+I**). Tick both runs and the signal `speed`:
 
-![](figures/first-model-5-inspector.png)
+![](../images/first-model-5-inspector.png)
 
 Run 2 (orange) reaches 100 km/h, but only after shooting up to **139 km/h**. While the car was accelerating
 at the 4000 N limit, the integrator kept adding up the large error ("winding up"). When the speed finally

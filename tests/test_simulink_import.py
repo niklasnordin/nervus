@@ -134,10 +134,173 @@ def test_matlab_expressions(matlab: str, nervus: str) -> None:
 def test_not_an_slx(tmp_path: Path) -> None:
     from nervus.core.errors import NervusError
 
-    bad = tmp_path / "model.mdl"
+    bad = tmp_path / "model.slx"
     bad.write_text('Model { Name "x" }')
     with pytest.raises(NervusError, match=r"not an \.slx file"):
         read_slx(bad)
+
+
+MDL = """Model {
+  Name                    "loop"
+  Version                 7.9
+  System {
+    Name                    "loop"
+    Location                [-1, -8, 1921, 1033]
+    Block {
+      BlockType               Step
+      Name                    "Step"
+      SID                     "1"
+      Position                [30, 85, 60, 115]
+      Time                    "0"
+    }
+    Block {
+      BlockType               Sum
+      Name                    "Sum"
+      SID                     "2"
+      Ports                   [2, 1]
+      Position                [100, 90, 120, 110]
+      Inputs                  "|+-"
+    }
+    Block {
+      BlockType               Gain
+      Name                    "Controller Gain"
+      SID                     "3"
+      Position                [160, 85, 190, 115]
+      Gain                    "K"
+      "p"
+    }
+    Block {
+      BlockType               TransferFcn
+      Name                    "Plant"
+      SID                     "4"
+      Position                [230, 82, 290, 118]
+      Denominator             "[tau 1]"
+    }
+    Block {
+      BlockType               Outport
+      Name                    "y"
+      SID                     "5"
+      Position                [360, 93, 390, 107]
+    }
+    Block {
+      BlockType               SubSystem
+      Name                    "Scaled"
+      SID                     "6"
+      Ports                   [1, 1]
+      Position                [230, 160, 290, 200]
+      MaskNames               "K"
+      MaskValueString         "2^2"
+      System {
+        Name            "Scaled"
+        Block {
+          BlockType       Inport
+          Name            "u"
+          SID             "7"
+        }
+        Block {
+          BlockType       Gain
+          Name            "Gain"
+          SID             "8"
+          Gain            "K"
+        }
+        Block {
+          BlockType       Outport
+          Name            "v"
+          SID             "12"
+        }
+        Line {
+          SrcBlock        "u"
+          SrcPort         1
+          DstBlock        "Gain"
+          DstPort         1
+        }
+        Line {
+          SrcBlock        "Gain"
+          SrcPort         1
+          DstBlock        "v"
+          DstPort         1
+        }
+      }
+    }
+    Block {
+      BlockType               Outport
+      Name                    "y4"
+      SID                     "9"
+      Port                    "2"
+    }
+    Line {
+      SrcBlock                "Step"
+      SrcPort                 1
+      DstBlock                "Sum"
+      DstPort                 1
+    }
+    Line {
+      SrcBlock                "Sum"
+      SrcPort                 1
+      DstBlock                "Controller Gain"
+      DstPort                 1
+    }
+    Line {
+      SrcBlock                "Controller Gain"
+      SrcPort                 1
+      DstBlock                "Plant"
+      DstPort                 1
+    }
+    Line {
+      SrcBlock                "Plant"
+      SrcPort                 1
+      Branch {
+        DstBlock                "y"
+        DstPort                 1
+      }
+      Branch {
+        DstBlock                "Sum"
+        DstPort                 2
+      }
+      Branch {
+        DstBlock                "Scaled"
+        DstPort                 1
+      }
+    }
+    Line {
+      SrcBlock                "Scaled"
+      SrcPort                 1
+      DstBlock                "y4"
+      DstPort                 1
+    }
+  }
+}
+"""
+
+
+@pytest.mark.parametrize("separator", [" ", "\t\t"])
+def test_mdl_import(tmp_path: Path, separator: str) -> None:
+    """Simulink writes tabs between the keys and the values; both are read."""
+    import re
+
+    from nervus.simulink import read_model
+
+    path = tmp_path / "loop.mdl"
+    path.write_text(re.sub(r"(?m)^(\s*\w+) +", lambda m: m.group(1) + separator, MDL))
+    d = read_model(path)
+    assert d.block("Controller_Gain").param_source("gain") == "Kp"  # a string continued on the next line
+    assert d.block("Scaled").mask["K"] == 4.0
+    d.workspace["Kp"] = 3.0
+    d.workspace["tau"] = 0.5
+    res = simulate(d, 2.0)
+    expected = 0.75 * (1 - np.exp(-4 * res.t / 0.5))
+    assert np.max(np.abs(np.ravel(res["y"]) - expected)) < 1e-3
+    assert np.ravel(res["y4"])[-1] == pytest.approx(3.0, abs=1e-3)
+
+
+def test_not_an_mdl(tmp_path: Path) -> None:
+    from nervus.core.errors import NervusError
+    from nervus.simulink import read_model
+
+    bad = tmp_path / "x.mdl"
+    bad.write_text("hello")
+    with pytest.raises(NervusError, match=r"not a Simulink \.mdl file"):
+        read_model(bad)
 
 
 def _archive(tmp_path: Path, systems: dict[str, str]) -> Path:

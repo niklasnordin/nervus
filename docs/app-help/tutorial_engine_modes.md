@@ -36,7 +36,7 @@ Double-click the **modes** block: the chart editor shows the modes as states and
 the arrow from *crank* to *idle* to see its guard, `rpm > rpm_started`; the number in front of it, 1, means it is
 checked first of the three transitions leaving *crank*. See *the chart editor*.
 
-![](figures/chart-editor.png)
+![](../images/chart-editor.png)
 
 ## Follow the scenarios
 
@@ -50,7 +50,7 @@ press **Run All** (Ctrl+T); all four pass. Double-click a result to see its sign
   (*fuel_cut*) and gives it back at 7.6 s, when the speed falls below 1100 rpm, early enough that the engine
   does not stall:
 
-![](figures/engine_modes.png)
+![](../images/blocks/engine_modes.png)
 
 - **stall**: the speed drops below 300 rpm at 2.4 s: *stalled*, no fuel, and the chart stays there until the
   key is turned off.

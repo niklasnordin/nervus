@@ -79,7 +79,7 @@ script plays the calibration engineer, following the ECU's clock. At 20 s it rai
 35 s it triples the controller gain, and at 40 s it lowers the set speed to 100 km/h again. With three times the
 gain, the car comes down faster (it brakes harder), as the calibrator wanted:
 
-![](figures/xcp_calibration.png)
+![](../images/blocks/xcp_calibration.png)
 
 ## Experiments
 

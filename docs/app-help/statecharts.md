@@ -4,13 +4,13 @@ Operating modes, start sequences and fault handling are naturally described as *
 Simulink they are Stateflow charts; in Nervus they are **State Chart** blocks
 (**Library → State Machines → State Chart**).
 
-![](figures/chart_engine_modes.png)
+![](../images/blocks/chart_engine_modes.png)
 
 ## The chart editor
 
 **Double-click** a State Chart block to open the chart editor:
 
-![](figures/chart-editor.png)
+![](../images/chart-editor.png)
 
 - **States** are boxes. Double-click empty space (or press **Add state**) to add one; drag it to move it. Select a
   state to edit its name and its *entry*, *during* and *exit* actions on the right. **Add child state** puts a state
@@ -24,7 +24,7 @@ Simulink they are Stateflow charts; in Nervus they are **State Chart** blocks
 - **Apply** or **OK** writes the chart to the block, as one step you can undo (Ctrl+Z). A chart that is not valid
   (an unknown name in a guard, say) shows the reason at the bottom and cannot be applied.
 
-![](figures/chart-editor-transition.png)
+![](../images/chart-editor-transition.png)
 
 The positions of the states are saved in the model file. A chart without positions (written as text) is laid out
 automatically, from the initial state on the left; **Tidy up** does that again. Comments in the chart text are not
@@ -141,7 +141,7 @@ processed in the order they are written. `after(n)` and `t_in_state` count the t
 transition or `during` action is being evaluated. The state output gives the innermost active state of the
 first region.
 
-![](figures/chart_hierarchy.png)
+![](../images/blocks/chart_hierarchy.png)
 
 Hierarchical charts are generated as C code like flat ones (the same algorithm, unrolled over the states), and
 back-to-back tests check them sample by sample. The Model Advisor knows that initial children and parallel
@@ -178,7 +178,7 @@ starter protection into **crank_fail**), **idle** (idle speed control on), **run
 cut-off while coasting) and **stalled** (no automatic restart). All thresholds are `param`s. Four test cases
 drive the key, engine speed and pedal with scenarios: a normal start, a failed start, fuel cut-off, and a stall.
 
-![](figures/engine_modes.png)
+![](../images/blocks/engine_modes.png)
 
 Coasting from 3000 rpm with the pedal released, the chart switches the fuel off (no fuel is needed: the car's
 momentum turns the engine) and back on at 1100 rpm, before the engine could stall, and goes to idle control.

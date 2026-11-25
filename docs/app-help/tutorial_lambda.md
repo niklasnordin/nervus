@@ -52,7 +52,7 @@ $$ m_{fuel,cmd} = \frac{m_{air,MAF}}{14.7}\,(1 + STFT + LTFT), \qquad t_{inj} = 
 
 ## What happens
 
-![](figures/lambda_trims.png)
+![](../images/blocks/lambda_trims.png)
 
 1. Up to 12 s λ stays at 1, even during the tip-in: the base fuel follows the measured air.
 2. At 12 s the leak makes the mixture 6 % lean. The lambda sensor sees it about 0.2 s later (exhaust delay

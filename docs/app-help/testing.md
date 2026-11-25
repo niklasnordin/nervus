@@ -36,7 +36,7 @@ Write arguments as `name=value, name=value`. Signals use result names such as `E
 For signals that are easier to draw than to type, put a **Signal Builder** block (Library → Sources) in the model
 and double-click it:
 
-![](figures/signal-editor.png)
+![](../images/signal-editor.png)
 
 - Each **signal** is a plot and one output of the block (*Add signal*, *Rename*, *Remove*). Drag a point to move it,
   double-click in a plot to add one, select a point and press **Delete** to remove it. The table on the right shows

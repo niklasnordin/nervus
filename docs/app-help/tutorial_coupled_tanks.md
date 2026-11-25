@@ -48,7 +48,7 @@ time $T_i = 15.2$ s equals its time constant, so the loop is
 $L(s) = \frac{K_c \cdot 3.2}{T_i s (4.8 s + 1)}$. For a crossover of 0.1 rad/s (a closed loop about ten times
 faster than the tank) $K_c = 0.1 \cdot 15.2 / 3.2 = 0.47$ V/cm, with a phase margin of about 65°.
 
-![](figures/lab_coupled_tanks.png)
+![](../images/blocks/lab_coupled_tanks.png)
 
 The reference steps to 17 cm at 50 s: the level follows with 0.12 cm overshoot and settles within 2 % in 44 s;
 the step down to 13 cm takes 38 s.

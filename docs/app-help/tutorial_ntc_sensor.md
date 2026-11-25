@@ -38,7 +38,7 @@ computed from the divider, the way a sensor supplier's data sheet gives it), eve
 
 ## Accuracy depends on the temperature
 
-![](figures/ntc_divider.png)
+![](../images/blocks/ntc_divider.png)
 
 The divider is nonlinear, so one ADC count means a different temperature step at each temperature. With the
 2.49 kΩ pull-up:

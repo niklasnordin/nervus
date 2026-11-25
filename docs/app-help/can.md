@@ -13,7 +13,7 @@ CAN buses (below):
 Set *dbc_file* (relative paths are relative to the model file), choose the *message* from the drop-down, and
 optionally list the *signals* to use (empty = all, in DBC order).
 
-![The bit layout of the EngineData message in examples/data/vehicle.dbc](figures/can_frame.png)
+![The bit layout of the EngineData message in examples/data/vehicle.dbc](../images/blocks/can_frame.png)
 
 ## Conversion
 
@@ -95,7 +95,7 @@ When the bus becomes idle, every waiting frame starts at once and the **lowest i
 arbitration; the others wait. Low-priority messages therefore see the longest delays, which grow quickly
 with the bus load:
 
-![Arbitration: 0x300 waits until all higher-priority frames are sent](figures/can_arbitration.png)
+![Arbitration: 0x300 waits until all higher-priority frames are sent](../images/blocks/can_arbitration.png)
 
 A frame reaches the CAN Receive blocks when its last bit has been sent; the receiver's task reads it at its
 next sample, like a mailbox. The CAN Bus block outputs the **load** (the share of time the bus was busy);
@@ -176,7 +176,7 @@ block writes the matching A2L file (8-byte doubles: calibrations from 0x10000, m
 Connect the CAN Bus block to an interface and turn on real-time pacing (Simulation ▸ Settings), and a
 calibration tool on a real CAN adapter can measure and tune the model.
 
-![A tool reading the output and writing Kp while the model runs](figures/xcp_live.png)
+![A tool reading the output and writing Kp while the model runs](../images/blocks/xcp_live.png)
 
 **Nervus as the tool.** `nervus.xcp.XcpMaster` connects to any XCP-on-CAN slave, the simulated one or a real
 ECU, through python-can, and reads and writes variables by name from an A2L file (the one Nervus generates

@@ -30,6 +30,7 @@ from __future__ import annotations
 import html
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 
 @dataclass
@@ -69,12 +70,18 @@ class ConditionCoverage:
 
     path: str
     operator: str
+    """AND, OR, ... for a Logical Operator; the expression for a chart guard."""
     n: int
     seen: dict[tuple[bool, ...], bool] = field(default_factory=dict)
+    evaluate: Any = None
+    """The decision as a function of its conditions (``None``: from the operator)."""
+
+    def outcome(self, conds: tuple[bool, ...]) -> bool:
+        return bool(self.evaluate(conds)) if self.evaluate is not None else _evaluate(self.operator, conds)
 
     def record(self, conds: tuple[bool, ...]) -> None:
         if conds not in self.seen:
-            self.seen[conds] = _evaluate(self.operator, conds)
+            self.seen[conds] = self.outcome(conds)
 
     def condition_outcomes(self) -> tuple[int, int]:
         """(covered, total) for condition coverage: each condition true and false."""
@@ -96,14 +103,14 @@ class ConditionCoverage:
         """The evaluations that would show condition ``i`` independently (the cheapest pair: one already seen)."""
 
         def fmt(c: tuple[bool, ...]) -> str:
-            return "(" + ", ".join("1" if v else "0" for v in c) + f") → {int(_evaluate(self.operator, c))}"
+            return "(" + ", ".join("1" if v else "0" for v in c) + f") → {int(self.outcome(c))}"
 
         pairs = []
         for k in range(2 ** (self.n - 1)):  # every setting of the other conditions
             others = [(k >> j) & 1 == 1 for j in range(self.n - 1)]
             a = tuple([*others[:i], True, *others[i:]])
             b = tuple([*others[:i], False, *others[i:]])
-            if _evaluate(self.operator, a) != _evaluate(self.operator, b):
+            if self.outcome(a) != self.outcome(b):
                 missing = [x for x in (a, b) if x not in self.seen]
                 pairs.append((len(missing), a, b, missing))
         if not pairs:
@@ -119,9 +126,9 @@ class Coverage:
     conditions: dict[str, ConditionCoverage] = field(default_factory=dict)
     """Decisions with several conditions, for condition and MC/DC coverage."""
 
-    def register_conditions(self, path: str, operator: str, n: int) -> None:
+    def register_conditions(self, path: str, operator: str, n: int, evaluate: Any = None) -> None:
         if path not in self.conditions:
-            self.conditions[path] = ConditionCoverage(path, operator, n)
+            self.conditions[path] = ConditionCoverage(path, operator, n, evaluate=evaluate)
 
     def record_conditions(self, path: str, evaluations: list[tuple[bool, ...]]) -> None:
         cc = self.conditions[path]

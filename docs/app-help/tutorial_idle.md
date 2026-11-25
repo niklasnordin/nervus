@@ -52,7 +52,7 @@ dropped, and the manifold delay makes the reaction slow, so the speed falls to a
 receive the AC *request* about 200 ms before the compressor clutch engages, and open the throttle in
 advance. With `alpha_ac = 3°` the dip shrinks to about 775 rpm:
 
-![](figures/idle_speed_control.png)
+![](../images/blocks/idle_speed_control.png)
 
 Try it: set `alpha_ac` to 0 in the Model Workspace and run again, or compare both in the Data Inspector.
 

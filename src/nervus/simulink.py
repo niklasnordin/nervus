@@ -24,6 +24,7 @@ import re
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 from xml.etree import ElementTree as ET
 
 from nervus.blocks import (
@@ -131,9 +132,7 @@ class _Archive:
         try:
             self.zip = zipfile.ZipFile(path)
         except zipfile.BadZipFile as exc:
-            raise NervusError(
-                f"{path.name} is not an .slx file (an .slx is a zip archive; .mdl files are not read)"
-            ) from exc
+            raise NervusError(f"{path.name} is not an .slx file (an .slx is a zip archive)") from exc
         self.names = set(self.zip.namelist())
         self.open_refs: set[str] = set()
         """The systems being read (a subsystem that contains itself would never end)."""
@@ -351,7 +350,7 @@ def _parameters_used(block: Block) -> set[str]:
     return names
 
 
-def _build(archive: _Archive, system: ET.Element, d: Diagram, path: str, report: ImportReport,
+def _build(archive: Any, system: ET.Element, d: Diagram, path: str, report: ImportReport,
            used: set[str]) -> None:  # fmt: skip
     by_sid: dict[str, Block] = {}
     for el in system.findall("Block"):
@@ -455,10 +454,133 @@ def _connect(d: Diagram, by_sid: dict[str, Block], line: ET.Element, src: tuple[
         _connect(d, by_sid, branch, src, path, report)
 
 
+# ---------------------------------------------------------------------------- the .mdl text format
+
+
+@dataclass
+class _Section:
+    kind: str
+    params: dict[str, str] = field(default_factory=dict)
+    children: list[_Section] = field(default_factory=list)
+
+
+def _unquote(text: str) -> str:
+    """A value: one or more adjacent "strings" joined (MATLAB splits long strings), or a bare word or array."""
+    parts = re.findall(r'"((?:[^"\\]|\\.)*)"', text)
+    if not parts:
+        return text.strip()
+    return "".join(parts).replace('\\"', '"').replace("\\n", "\n")
+
+
+def _parse_mdl(text: str) -> _Section:
+    """The nested ``Name { key value ... }`` sections of an .mdl file, one key and value per line; a line that is
+    only a string continues the previous value."""
+    root = _Section("root")
+    stack = [root]
+    last: str | None = None
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.endswith("{"):
+            sec = _Section(line[:-1].strip())
+            stack[-1].children.append(sec)
+            stack.append(sec)
+            last = None
+        elif line == "}":
+            if len(stack) > 1:
+                stack.pop()
+            last = None
+        elif line.startswith('"') and last is not None:
+            stack[-1].params[last] += _unquote(line)
+        else:
+            parts = line.split(None, 1)  # .mdl files separate the key and the value with tabs
+            key, rest = parts[0], (parts[1] if len(parts) > 1 else "")
+            stack[-1].params[key] = _unquote(rest)
+            last = key
+    return root
+
+
+class _MdlArchive:
+    """The .mdl file's systems as the XML elements the .slx import reads."""
+
+    def __init__(self, path: Path) -> None:
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if not re.search(r"^\s*(Model|Library)\s*\{", text, re.M):
+            raise NervusError(f"{path.name} is not a Simulink .mdl file")
+        model = next((c for c in _parse_mdl(text).children if c.kind in ("Model", "Library")), None)
+        system = next((c for c in model.children if c.kind == "System"), None) if model else None
+        if system is None:
+            raise NervusError(f"{path.name} has no System")
+        self.systems: dict[str, ET.Element] = {}
+        self._sid = 0
+        self.open_refs: set[str] = set()
+        """The systems being read (see `_Archive`)."""
+        self.systems["system_root"] = self._convert(system)
+
+    def system(self, ref: str) -> ET.Element:
+        return self.systems[ref]
+
+    def _convert(self, sec: _Section) -> ET.Element:
+        el = ET.Element("System")
+        sids: dict[str, str] = {}
+        for blk in (c for c in sec.children if c.kind == "Block"):
+            self._sid += 1
+            sid = str(self._sid)
+            name = blk.params.get("Name", f"block{sid}")
+            sids[name] = sid
+            b = ET.SubElement(el, "Block", BlockType=blk.params.get("BlockType", ""), Name=name, SID=sid)
+            for k, v in blk.params.items():
+                if k not in ("Name", "BlockType", "SID"):
+                    ET.SubElement(b, "P", Name=k).text = v
+            names = [n for n in re.split(r"\|", blk.params.get("MaskNames", "")) if n]
+            values = re.split(r"\|", blk.params.get("MaskValueString", ""))
+            if names:
+                mask = ET.SubElement(b, "Mask")
+                for n, v in zip(names, values, strict=False):
+                    mp = ET.SubElement(mask, "MaskParameter", Name=n)
+                    ET.SubElement(mp, "Value").text = v
+            inner = next((c for c in blk.children if c.kind == "System"), None)
+            if inner is not None:
+                ref = f"system_{sid}"
+                ET.SubElement(b, "System", Ref=ref)
+                self.systems[ref] = self._convert(inner)
+        for line in (c for c in sec.children if c.kind == "Line"):
+            el.append(self._line(line, sids))
+        return el
+
+    def _line(self, sec: _Section, sids: dict[str, str]) -> ET.Element:
+        out = ET.Element("Line" if sec.kind == "Line" else "Branch")
+        p = sec.params
+        if "SrcBlock" in p and p["SrcBlock"] in sids:
+            ET.SubElement(out, "P", Name="Src").text = f"{sids[p['SrcBlock']]}#out:{p.get('SrcPort', '1')}"
+        if "DstBlock" in p and p["DstBlock"] in sids:
+            port = p.get("DstPort", "1")
+            kind = port if port in ("enable", "trigger") else "in"
+            ET.SubElement(out, "P", Name="Dst").text = f"{sids[p['DstBlock']]}#{kind}:{port if kind == 'in' else ''}"
+        for branch in (c for c in sec.children if c.kind == "Branch"):
+            out.append(self._line(branch, sids))
+        return out
+
+
+def read_model(path: str | Path) -> Diagram:
+    """Read a Simulink model: ``.slx`` or ``.mdl``."""
+    return read_mdl(path) if Path(path).suffix.lower() == ".mdl" else read_slx(path)
+
+
+def read_mdl(path: str | Path) -> Diagram:
+    """Read a Simulink ``.mdl`` model (the text format). The import report is in ``model.meta["simulink_report"]``."""
+    p = Path(path)
+    return _read(_MdlArchive(p), p)
+
+
 def read_slx(path: str | Path) -> Diagram:
     """Read a Simulink ``.slx`` model. The import report is in ``model.meta["simulink_report"]``."""
     p = Path(path)
-    archive = _Archive(p)
+    return _read(_Archive(p), p)
+
+
+def _read(archive: Any, p: Path) -> Diagram:
     root = archive.system("system_root")
     d = Diagram(re.sub(r"\W", "_", p.stem))
     report = ImportReport()

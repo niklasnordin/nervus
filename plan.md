@@ -10,6 +10,9 @@ Check items off (`- [x]`) as they are done. Add new items and phases whenever we
 
 ---
 
+
+The releases these items are grouped into are on the [roadmap to 1.0](docs/roadmap.md).
+
 ## Guiding principles
 
 - **Headless engine first.** The simulation engine is pure Python with no Qt imports, so it can be used from
@@ -58,7 +61,7 @@ tests/
 - [x] GitHub Actions CI: lint, type-check and tests on every push and PR
 - [x] `README.md` (what it is, install, quick start), `CONTRIBUTING.md`, `CHANGELOG.md`
 - [x] Docs skeleton with MkDocs Material
-- [ ] Publish the docs to GitHub Pages (once the repo is public, or on a paid plan)
+- [x] Publish the docs to GitHub Pages: https://ikjbi.github.io/nervus/ (workflow docs.yml, on every docs change)
 
 ## Phase 1 – Core simulation engine (headless)
 - [x] `Block` base class: input and output ports, parameters, states, `outputs()`, `update()` (discrete),
@@ -278,7 +281,8 @@ tests/
 - [x] FMI 2.0/3.0: import FMUs as blocks (`fmpy`), export models as FMUs (FMI 2.0 co-simulation)
 - [x] Import a subset of Simulink `.slx` (about 45 block types, masks, subsystems; the rest as empty subsystems in
       a report)
-- [ ] `.mdl` (text format) and Stateflow charts
+- [x] `.mdl` (text format), read into the same import as `.slx`
+- [ ] Stateflow charts in the Simulink import (as State Chart blocks)
 - [x] Export results to MAT files (`scipy.io`) for MATLAB users (`SimResult.to_mat`)
 
 ## Phase 19 – Quality, testing and release
@@ -286,14 +290,17 @@ tests/
       shown in the Test Manager
 - [x] Condition and MC/DC coverage for logic (Logical Operator decisions; the report names the missing
       evaluations)
-- [ ] Coverage of the generated C (gcov); MC/DC for chart guards with and/or
+- [x] Coverage of the generated C by the test cases (gcov: lines and branches; `coverage_of_tests`)
+- [x] C coverage button in the code generation dialog; MC/DC for chart guards with and/or/not
 - [x] Requirements traceability (link requirements to blocks and tests)
 - [x] Model Advisor: 10 rules (float equality, division, anti-windup, implicit sampling, chart reachability, ...)
 - [x] Packaging for PyPI: wheel with the examples (`nervus --copy-examples`, File ▸ Open Example), clean source
       package, README links for PyPI, a release workflow with trusted publishing (the first release needs the
       one-time PyPI setup in CONTRIBUTING.md)
-- [ ] Standalone installers (PyInstaller / Briefcase) for macOS, Windows and Linux
-- [ ] Versioned docs, release notes; publish docs to GitHub Pages
+- [x] Standalone applications (PyInstaller) for macOS (.dmg), Windows and Linux (.zip), built for every release
+- [ ] Signed and notarised applications (an Apple developer account, a Windows code-signing certificate)
+- [x] Release notes: each release gets a GitHub Release with its CHANGELOG section; docs on GitHub Pages
+- [x] Versioned docs with mike: `dev` from main, one site per minor release (the newest is `latest`)
 
 ## Phase 20 – Electrical and physical modelling
 *Acausal (equation-based) components connected by physical wires, like Simscape Electrical.*

@@ -36,7 +36,7 @@ if warm, which is safe for driving to a workshop.
 The **fault_injection** block (a Python Function) sets the harness resistance to 100 MΩ (open circuit) or the
 signal wire's resistance to ground to 0.05 Ω (short) at `fault_time` = 200 s. Set `fault` = 1 and run:
 
-![](figures/ntc_fault.png)
+![](../images/blocks/ntc_fault.png)
 
 The voltage jumps to 5.0 V; the raw measurement reads −40 °C (the end of the table), which would make the engine
 run very rich if the ECU believed it. After 5 samples the code P0118 is pending (200.6 s) and the ECU uses 80 °C.

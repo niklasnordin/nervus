@@ -44,7 +44,7 @@ The engine ECU has an **energy management** function, a State Chart running ever
 Its outputs go through a Unit Delay, so they act one task later, like the outputs of a real ECU (and the loop from the
 battery current back to the circuit is not instantaneous).
 
-![](figures/charging_system.png)
+![](../images/blocks/charging_system.png)
 
 ## Results
 

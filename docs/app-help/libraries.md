@@ -62,7 +62,7 @@ engine with the same throttle steps. Only the mask values differ: `displacement`
 Inside, the component uses its mask parameters like workspace variables: the Gain `1 / J`, and the
 *parameters* of its Python Function blocks (`[eta_vol, displacement]`, read as `p[0]`, `p[1]` in the code):
 
-![Engine speed of both engines](figures/engine_comparison.png)
+![Engine speed of both engines](../images/blocks/engine_comparison.png)
 
 At the same throttle opening the larger engine runs *slower*: the throttle limits how much air gets in, and
 the larger engine has more friction. Open the library, change the friction model in `net_torque`, save, and

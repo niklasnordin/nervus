@@ -2,7 +2,12 @@
 
 ## Install
 
-Nervus needs Python 3.11 or newer. With pip:
+**Without Python:** download the application for macOS, Windows or Linux from the
+[latest release](https://github.com/ikjbi/nervus/releases/latest) (*Assets*), unpack it and start **Nervus**. The
+applications are not signed yet: on macOS, right-click **Nervus.app ▸ Open** the first time; on Windows, *More info ▸
+Run anyway*.
+
+**With Python** (3.11 or newer), with pip:
 
 ```bash
 pip install "nervus[gui]"                    # the engine and the desktop editor

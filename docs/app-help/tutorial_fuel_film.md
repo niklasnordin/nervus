@@ -15,7 +15,7 @@ things every production fuel system has.
 uv run python examples/fuel_film.py
 ```
 
-![](figures/fuel_film.png)
+![](../images/blocks/fuel_film.png)
 
 ## Wall wetting (x-tau)
 

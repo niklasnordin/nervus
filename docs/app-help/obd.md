@@ -89,7 +89,7 @@ an engine ECU does:
    last cleared, which is what an inspection checks; clearing the codes (the optional *clear* input, like
    mode 04) sets it back to "not complete".
 
-![A misfire monitor over four operation cycles](figures/diagnostic_monitor.png)
+![A misfire monitor over four operation cycles](../images/blocks/diagnostic_monitor.png)
 
 The optional *enable* input holds the test while its conditions are not met (e.g. only with a warm engine),
 and a rising edge on the optional *cycle* input starts a new operation cycle (key on). The *status* output is

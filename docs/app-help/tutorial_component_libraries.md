@@ -32,7 +32,7 @@ torque, crankshaft) built from ordinary blocks. Its blocks use the mask paramete
 Select **engine_2_0l**. Its mask parameters are in Properties: `displacement` = 0.002 m³, `J` = 0.2 kg·m², the
 manifold volume, the efficiencies and the throttle area. Only these differ between the two engines. Run the model:
 
-![](figures/engine_comparison.png)
+![](../images/blocks/engine_comparison.png)
 
 | | 3° throttle | 6° throttle | 6° with 15 N·m load |
 |---|---|---|---|

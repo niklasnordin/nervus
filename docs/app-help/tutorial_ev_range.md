@@ -29,7 +29,7 @@ with the drivetrain efficiency $\eta_{drive}$ = 0.88 (inverter, motor, gearbox),
 $\eta_{regen}$ = 0.75, the share of the braking done by the motor $s_{regen}$ = 1, and 0.3 kW for the
 auxiliaries. Integrated over the cycle, it gives the energy taken from the battery.
 
-![](figures/ev_range.png)
+![](../images/blocks/ev_range.png)
 
 ## Where the energy goes
 

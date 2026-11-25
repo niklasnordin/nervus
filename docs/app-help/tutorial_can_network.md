@@ -38,7 +38,7 @@ From 1 s, 20 % of the ECM's frames get a flipped data bit (`corrupt_rate`). The 
 error on the wire, so this models a fault behind it, in a gateway's memory or the sender's software. Only the
 E2E CRC can see it:
 
-![](figures/can_network.png)
+![](../images/blocks/can_network.png)
 
 The check reports *wrong CRC* for each corrupted frame; after two corrupted frames in a row the counter has
 jumped by 3 and it reports *wrong sequence* (`max_delta` = 2). The needle never shows a corrupted value,

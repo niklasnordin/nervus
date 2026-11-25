@@ -51,7 +51,7 @@ nothing at standstill, so the steady-state error stays. The step makes the D ter
 Set `Ki` = 30. The integral term keeps pushing while there is any error, so the mass ends exactly at 1 m.
 The price is a little more overshoot (12 %); the response settles within 2 % in 2.3 s.
 
-![](figures/lab_mass_spring_damper.png)
+![](../images/blocks/lab_mass_spring_damper.png)
 
 | Controller | Highest position | Final position | Settled (2 %) |
 |---|---|---|---|

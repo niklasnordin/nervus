@@ -125,7 +125,7 @@ Half as much fuel again, for the same speed. The model integrates the fuel (`fue
 
 ## Results
 
-![](figures/gear_shift.png)
+![](../images/blocks/gear_shift.png)
 
 - **Full-throttle launch** (0–9 s): the upshifts come at 40 and 70 km/h, at almost 5000 rpm. Each upshift
   drops the engine speed, and the speed curve has a short flat step: the torque cut.

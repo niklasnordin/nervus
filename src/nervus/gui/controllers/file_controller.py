@@ -78,11 +78,11 @@ class FileController(QObject):
     # ------------------------------------------------------------------ other tools' files
 
     def import_simulink(self, path: str | Path) -> Diagram | None:
-        """Read a Simulink .slx model and show it as a new, unsaved model (``meta["simulink_report"]`` lists what
+        """Read a Simulink .slx or .mdl model and show it as a new, unsaved model (``meta["simulink_report"]`` lists what
         was not translated)."""
-        from nervus.simulink import read_slx
+        from nervus.simulink import read_model
 
-        return self._import(read_slx, path)
+        return self._import(read_model, path)
 
     def import_spice(self, path: str | Path) -> Diagram | None:
         """Read a SPICE netlist and show it as a new, unsaved model (``meta["spice_skipped"]``: elements left out)."""

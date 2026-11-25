@@ -390,6 +390,31 @@ def parse_chart(text: str) -> ChartSpec:
     return ChartSpec(inputs, outputs, locals_, states, transitions, root_initial, params, events)
 
 
+def _guard_conditions(guard: ast.expr) -> tuple[list[Any], Any] | None:
+    """A guard's conditions (the leaves of its and/or/not tree) and a function that computes the guard from their
+    truth values; ``None`` for a guard with fewer than two conditions."""
+    leaves: list[ast.expr] = []
+
+    def split(node: ast.expr) -> ast.expr:
+        if isinstance(node, ast.BoolOp):
+            return ast.BoolOp(op=node.op, values=[split(v) for v in node.values])
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
+            return ast.UnaryOp(op=node.op, operand=split(node.operand))
+        leaves.append(node)
+        return ast.Name(id=f"_c{len(leaves) - 1}", ctx=ast.Load())
+
+    skeleton = split(guard)
+    if len(leaves) < 2:
+        return None
+    codes = [compile(ast.fix_missing_locations(ast.Expression(leaf)), "<guard>", "eval") for leaf in leaves]
+    shape = compile(ast.fix_missing_locations(ast.Expression(skeleton)), "<guard>", "eval")
+
+    def evaluate(conds: tuple[bool, ...]) -> bool:
+        return bool(eval(shape, {"__builtins__": {}}, {f"_c{i}": v for i, v in enumerate(conds)}))
+
+    return codes, evaluate
+
+
 def _ancestry(states: list[ChartState], k: int) -> list[int]:
     out = [k]
     while states[out[-1]].parent is not None:
@@ -443,6 +468,11 @@ class _Interpreter:
             self.outgoing[t.source].append(k)
         self.fired: list[int] = []
         """Transitions that fired in the last step (for coverage)."""
+        self.conditions = {tk: c for tk, t in enumerate(spec.transitions) if (c := _guard_conditions(t.guard))}
+        """For condition and MC/DC coverage: the guards with two or more conditions, (condition codes, evaluator)."""
+        self.recording = False
+        self.condition_log: list[tuple[int, tuple[bool, ...]]] = []
+        """(transition, the values of its guard's conditions) for every evaluation of such a guard."""
         self.period = 0.0
         self.entered: set[int] = set()
         """States entered in the current step (their clocks stay at 0)."""
@@ -515,6 +545,9 @@ class _Interpreter:
         """Outer transitions first; if none fires, ``during`` and then the active children."""
         self._clock(k, env, period)
         for tk in self.outgoing[k]:
+            if self.recording and tk in self.conditions:
+                leaves = self.conditions[tk][0]
+                self.condition_log.append((tk, tuple(bool(eval(c, {"__builtins__": {}}, env)) for c in leaves)))
             if eval(self.guards[tk], {"__builtins__": {}}, env):
                 self._fire(tk, env)
                 return
@@ -696,9 +729,27 @@ class StateChart(Block):
             self._transition_label(k) for k in range(len(self.spec.transitions))
         ]
 
+    def coverage_decisions(self) -> list[tuple[str, str, int, Any]]:
+        """Guards with two or more conditions: (name, guard, number of conditions, evaluator) for MC/DC."""
+        out = []
+        for tk, (codes, evaluate) in self._interp.conditions.items():
+            t = self.spec.transitions[tk]
+            name = f"{self.spec.states[t.source].name} -> {self.spec.states[t.target].name}"
+            out.append((name, t.guard_src, len(codes), evaluate))
+        return out
+
+    def decision_values(self) -> list[tuple[str, tuple[bool, ...]]]:
+        """The guard conditions evaluated in the last coverage step."""
+        names = {tk: n for (n, _g, _c, _e), tk in zip(self.coverage_decisions(), self._interp.conditions, strict=True)}
+        return [(names[tk], conds) for tk, conds in self._interp.condition_log]
+
     def coverage_hits(self, t: float, u: Sequence[Array], y: Sequence[Array], xd: Array) -> list[str]:
         n, _v0 = self._layout()
         before = {k for k in range(n) if xd[k]}
-        after = self._step(u, xd)
+        self._interp.recording, self._interp.condition_log = True, []
+        try:
+            after = self._step(u, xd)
+        finally:
+            self._interp.recording = False
         hits = [f"state {self.spec.states[k].name}" for k in sorted(before | {k for k in range(n) if after[k]})]
         return hits + [self._transition_label(k) for k in self._interp.fired]

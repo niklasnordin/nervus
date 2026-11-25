@@ -60,7 +60,7 @@ directly, it would see the old or the new value depending on whether the slow ta
 result would depend on timing. A Rate Transition makes the transfer deterministic, in the simulation and on
 the target:
 
-![Rate Transition between a 10 ms and a 100 ms task](figures/rate_transition.png)
+![Rate Transition between a 10 ms and a 100 ms task](../images/blocks/rate_transition.png)
 
 | Direction | Set | Behaviour |
 |---|---|---|
@@ -132,6 +132,22 @@ The subsystems must have the same contents (blocks and wiring; their parameter *
 (their own *sample_time*) and have no enable or trigger port. The functions are in their own files
 (`cyl_trim.c`, `cyl_trim.h`), which the ECU project builds with the model's code. Each instance's calibration
 parameters are in the A2L file as `<model>_<subsystem>_P.<name>`.
+
+## Coverage of the generated code
+
+`nervus.codegen.c_coverage.coverage_of_tests(model, model.block("ECU"))` runs every test case of the model, records
+the signals that enter the code at each of its steps, replays them into the generated C compiled with `--coverage`,
+and reads gcov's counts: which lines and branches of the ECU code the tests execute (with each test's calibration).
+
+```python
+cov = coverage_of_tests(model, model.block("ECU"))
+print(cov.summary())  # C code coverage: lines 100 % (25/25), branches 75 % (6/8) in 3 run(s), and what never ran
+cov.save_html("ecu_coverage.html")
+```
+
+Many blocks become one-line conditionals (a Switch, a Saturation), so a missing test shows as a branch never taken
+rather than a line. Needs a C compiler and gcov. In the editor: **C coverage (tests)** in the code generation
+dialog shows the percentages and opens the annotated report.
 
 ## MISRA C
 

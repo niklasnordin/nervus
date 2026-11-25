@@ -81,3 +81,32 @@ def test_tour_stops_name_real_shortcuts(window) -> None:  # type: ignore[no-unty
     assert window.act_run.shortcut().toString() in text  # Ctrl+R
     assert window.act_inspector.shortcut().toString() in text  # Ctrl+I
     assert window.act_flip.shortcut().toString() in text  # Ctrl+Shift+F
+
+
+def test_tour_bubble_beside_its_target_and_not_at_the_bottom(window) -> None:  # type: ignore[no-untyped-def]
+    """Regression: the note for the canvas sat at the bottom edge of the window and the one for the panels covered
+    them, so on a screen with a dock the Next button was out of reach."""
+    window.resize(1280, 800)
+    tour = window.start_tour()
+    for i, stop in enumerate(tour.stops):
+        tour.go(i)
+        bubble = tour.bubble.geometry()
+        if tour.hole is not None and stop.title != "2. The canvas":
+            assert not bubble.intersects(tour.hole), stop.title  # beside a small part, not on it
+        assert bubble.bottom() < window.height() - 100, stop.title
+    tour.go(2)
+    assert tour.hole is not None and tour.hole.contains(tour.bubble.geometry())  # inside the canvas, at its top
+    assert tour.bubble.y() < tour.hole.center().y()
+    tour.close()
+
+
+def test_tour_bubble_stays_on_the_screen(window) -> None:  # type: ignore[no-untyped-def]
+    """A window taller than the screen: the bubble stays in the part that can be seen."""
+    screen = window.screen().availableGeometry()
+    window.resize(1000, screen.height() + 300)
+    tour = window.start_tour()
+    for i, stop in enumerate(tour.stops):
+        tour.go(i)
+        top_left = tour.bubble.mapToGlobal(tour.bubble.rect().topLeft())
+        assert screen.contains(tour.bubble.rect().translated(top_left)), stop.title
+    tour.close()

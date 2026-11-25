@@ -36,7 +36,7 @@ through 1st gear: 30 kg·m²); the tyre force pushes the car and brakes the whee
 Every 10 ms the TCS ECU compares the driven wheels' speed with the non-driven wheels' (which turn with the car)
 and computes the slip. Above the 10 % target, a PI controller reduces the engine torque (0 = none, 1 = all).
 
-![](figures/traction_control.png)
+![](../images/blocks/traction_control.png)
 
 | Road | TCS off | TCS on |
 |---|---|---|

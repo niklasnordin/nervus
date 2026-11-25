@@ -34,3 +34,5 @@ Simulink. It is aimed at control engineering, and especially at engine and vehic
 - [Concepts](concepts.md): signals, sample times, solvers and algebraic loops.
 - [Coming from Simulink](coming-from-simulink.md): how Simulink terms and blocks map to Nervus.
 - [Block reference](blocks/index.md): every block, its equations and parameters.
+
+Where Nervus is going: the [roadmap to 1.0](roadmap.md).
