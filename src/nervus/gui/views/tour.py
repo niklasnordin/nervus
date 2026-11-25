@@ -131,6 +131,7 @@ class EditorTour(QWidget):
     def _place(self) -> None:
         self.setGeometry(self.window_.rect())
         self.hole = self._target_rect()
+        self.raise_()  # showing a panel raises it, above the overlay and the note, among the window's children
         # The size hint ignores the fixed width: take the height the text needs at that width.
         height = self.bubble.heightForWidth(BUBBLE_WIDTH)
         b = QSize(BUBBLE_WIDTH, height if height > 0 else self.bubble.sizeHint().height())

@@ -110,3 +110,20 @@ def test_tour_bubble_stays_on_the_screen(window) -> None:  # type: ignore[no-unt
         top_left = tour.bubble.mapToGlobal(tour.bubble.rect().topLeft())
         assert screen.contains(tour.bubble.rect().translated(top_left)), stop.title
     tour.close()
+
+
+def test_tour_note_is_on_top_of_the_panels(window) -> None:  # type: ignore[no-untyped-def]
+    """Regression: showing a panel raised it above the tour, so the Properties panel covered the note (and its
+    Next button) from the third stop on, and was not dimmed."""
+    tour = window.start_tour()
+    for i, stop in enumerate(tour.stops):
+        tour.go(i)
+        for button in (tour.bubble.next, tour.bubble.back):
+            centre = button.mapTo(window, button.rect().center())
+            assert window.childAt(centre) is button, (stop.title, window.childAt(centre))
+        for name in ("library_dock", "properties_dock", "diagnostics_dock"):
+            dock = getattr(window, name)
+            centre = dock.mapTo(window, dock.rect().center())
+            hit = window.childAt(centre)
+            assert hit is tour or tour.isAncestorOf(hit), (stop.title, name, hit)  # under the overlay
+    tour.close()

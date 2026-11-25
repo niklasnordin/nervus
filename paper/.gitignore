@@ -1,0 +1,13 @@
+data/*
+!data/README.md
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.toc
+__pycache__/
+# the CUP template files (see README.md)
+jfm.cls
+jfm.bst
+lineno-FLM.sty

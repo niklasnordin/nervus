@@ -25,6 +25,8 @@ All notable changes to this project are documented here. The format follows
   good, sweeps, the model's test cases in pytest, models built in code (`examples/scripting.py`).
 - Tutorial *From continuous to discrete: sample times*: a PI loop run every T ms, from no difference to
   instability, discrete poles, and aliasing (`examples/discrete_control.nervus`, `examples/aliasing.nervus`).
+- A validation paper in the style of the *Journal of Fluid Mechanics* (`paper/`): every module against exact
+  solutions, tank draining through an orifice against measurements, and Newton's St Paul's Cathedral drops.
 
 ### Fixed
 - File ▸ Import Simulink, Import SPICE, Export SPICE and Code ▸ Export FMU did nothing from the menu.

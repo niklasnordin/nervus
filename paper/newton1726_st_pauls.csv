@@ -1,0 +1,33 @@
+# Free fall of light spheres through air from St Paul's Cathedral, London (1710 and 1719), as tabulated by Newton.
+# Source: I. Newton (1726) Philosophiae Naturalis Principia Mathematica, 3rd edn, Book II, Sect. VII, Prop. XL, Scholium, Exper. 13 and 14.
+#   English translation by A. Motte (1729); American edition 'The Mathematical Principles of Natural Philosophy' (1846, New York: D. Adee),
+#   pp. 351-354. Transcription used: Wikisource, Page:Newton's Principia (1846).djvu/357-360 (page status 'validated'),
+#   https://en.wikisource.org/wiki/The_Mathematical_Principles_of_Natural_Philosophy_(1846)/BookII-VII . Text is in the public domain.
+# Exper. 13 (June 1710): two glass globes, one mercury-filled, one air-filled, released together from a hinged table; 220 English feet; timed with a
+#   seconds pendulum. Exper. 14 (July 1719, J.T. Desaguliers): hogs' bladders blown into spheres, 272 feet, times by half-second and quarter-second
+#   pendulum 'machines'; table times are Newton's chosen values (see text values in the _params.json).
+# Columns copied VERBATIM as text: exper, date, object, n (order in Newton's table), weight_grains_text (weight weighed in air), diameter_text,
+#   time_text (observed; '4-'/'4+' mean slightly under/over 4 s), time_corrected_text (Newton's correction: about 18 thirds = 0.3 s subtracted for the slow
+#   release of the hinged table; Exper. 13 air globes only), height_text.
+# DERIVED columns (unit conversion only; grain = 64.79891 mg, foot = 0.3048 m, inch = 0.0254 m; 1 third = 1/60 s):
+#   weight_kg, diameter_m, height_m, time_s, time_corrected_s. For the mercury globes the time entries are qualitative ('4-', '4+'); time_s left blank.
+# Caveats: weights are apparent weights in air (Newton adds the buoyancy of the displaced air, e.g. 483 + 19 3/10 = 502 3/10 grains for globe 5);
+#   timing resolution about 0.25-0.5 s; bladders 'fluttered', lengthening times by 0.5-1 s (Newton); bladder 5 wrinkled.
+exper,date,object,n,weight_grains_text,diameter_text,time_text,time_corrected_text,height_text,weight_kg,diameter_m,height_m,time_s,time_corrected_s
+13,1710-06,mercury-filled glass globe,1,908,"0,8 of an inch",4″,,220 feet,0.0588374,0.02032,67.056,4,
+13,1710-06,mercury-filled glass globe,2,983,"0,8 of an inch",4-,,220 feet,0.0636973,0.02032,67.056,,
+13,1710-06,mercury-filled glass globe,3,866,"0,8 of an inch",4,,220 feet,0.0561159,0.02032,67.056,4,
+13,1710-06,mercury-filled glass globe,4,747,"0,75 of an inch",4+,,220 feet,0.0484048,0.01905,67.056,,
+13,1710-06,mercury-filled glass globe,5,808,"0,75 of an inch",4,,220 feet,0.0523575,0.01905,67.056,4,
+13,1710-06,mercury-filled glass globe,6,784,"0,75 of an inch",4+,,220 feet,0.0508023,0.01905,67.056,,
+13,1710-06,air-filled glass globe,1,510,"5,1 inches","8""½",8″ 12‴,220 feet,0.0330474,0.12954,67.056,8.5,8.2
+13,1710-06,air-filled glass globe,2,642,"5,2 inches",8,7″ 42‴,220 feet,0.0416009,0.13208,67.056,8,7.7
+13,1710-06,air-filled glass globe,3,599,"5,1 inches",8,7″ 42‴,220 feet,0.0388145,0.12954,67.056,8,7.7
+13,1710-06,air-filled glass globe,4,515,"5,0 inches",8¼,7″ 57‴,220 feet,0.0333714,0.127,67.056,8.25,7.95
+13,1710-06,air-filled glass globe,5,483,"5,0 inches",8½,8″ 12‴,220 feet,0.0312979,0.127,67.056,8.5,8.2
+13,1710-06,air-filled glass globe,6,641,"5,2 inches",8,7″ 42‴,220 feet,0.0415361,0.13208,67.056,8,7.7
+14,1719-07,hog's bladder blown into a sphere,1,128,"5,28 inches",19″,,272 feet,0.00829426,0.134112,82.9056,19,
+14,1719-07,hog's bladder blown into a sphere,2,156,"5,19 inches",17″,,272 feet,0.0101086,0.131826,82.9056,17,
+14,1719-07,hog's bladder blown into a sphere,3,137½,"5,3 inches",18″,,272 feet,0.00890985,0.13462,82.9056,18,
+14,1719-07,hog's bladder blown into a sphere,4,97½,"5,26 inches",22″,,272 feet,0.00631789,0.133604,82.9056,22,
+14,1719-07,hog's bladder blown into a sphere,5,99 1/8,5 inches,21 1/8″,,272 feet,0.00642319,0.127,82.9056,21.125,
