@@ -57,6 +57,14 @@ class SettingsDialog(QDialog):
         self.loops.addItem("Solve iteratively (Newton; slower, no C code)", "solve")
         self.loops.setCurrentIndex(1 if settings.algebraic_loops == "solve" else 0)
         self.loops.setToolTip("A feedback loop of blocks whose outputs depend directly on their inputs")
+        self.mode = QComboBox()
+        self.mode.addItem("Normal (blocks run in Python)", "normal")
+        self.mode.addItem("Accelerated (the model as compiled C)", "accelerated")
+        self.mode.setCurrentIndex(1 if settings.mode == "accelerated" else 0)
+        self.mode.setToolTip(
+            "Accelerated: 10 to 300 times faster for models whose blocks all have C code (needs a C compiler). "
+            "Other models run normally; the run's warnings say why."
+        )
         self.pacing = QLineEdit(format_value(settings.pacing) if settings.pacing else "")
         self.pacing.setPlaceholderText("off (as fast as possible)")
         self.pacing.setToolTip("1 = real time, 0.5 = half speed; to watch live scopes or to run against hardware")
@@ -75,6 +83,7 @@ class SettingsDialog(QDialog):
         form.addRow("Absolute tolerance", self.atol)
         form.addRow("", self.zero_crossing)
         form.addRow("Algebraic loops", self.loops)
+        form.addRow("Simulation mode", self.mode)
         form.addRow("Pacing (× real time)", self.pacing)
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         buttons.accepted.connect(self._accept)
@@ -116,6 +125,7 @@ class SettingsDialog(QDialog):
                 zero_crossing=self.zero_crossing.isChecked(),
                 algebraic_loops=str(self.loops.currentData()),
                 pacing=self._num(self.pacing, optional=True) or 0.0,
+                mode=str(self.mode.currentData()),
             )
             s.validate()
         except ValueError as exc:

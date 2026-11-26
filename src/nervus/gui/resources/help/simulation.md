@@ -36,6 +36,31 @@ ten times faster. Leave it empty to run as fast as possible (the default). In Py
 Use **Stop Simulation** to end a run when a condition becomes true, and **Assertion** to fail the run when a
 condition that must always hold becomes false.
 
+## Accelerated simulation
+
+**Simulation Settings → Simulation mode → Accelerated** runs the whole model as compiled C: Nervus generates C
+code for every block, compiles it, and runs the simulation loop in C. Large models run **30 to 700 times
+faster**. The first run of a model (and the first run after a parameter change) takes a moment longer to
+compile; later runs use the compiled code again.
+
+| | Normal | Accelerated |
+|---|---|---|
+| Blocks | all | blocks with C code: the ECU blocks, Integrator, Transfer Fcn, State-Space, Derivative, PID, the time sources (Step, Sine, Pulse, Ramp, From Workspace, Drive Cycle, Clock) and Python Function blocks written in simple Python |
+| Solver | the one you chose | the fixed-step solver you chose; a variable-step solver is replaced by **rk4** (the step is the max step, else 1/1000 of the time span) |
+| Needs | nothing | a C compiler (on macOS: `xcode-select --install`; on Linux: gcc; on Windows: MinGW or clang) |
+
+The results are the same as a normal run with the same fixed-step solver (to about 1e-12). Models with blocks
+that have no C code (physical networks, FMUs, CAN buses, OBD Responder), algebraic loops, or coverage
+collection run normally, and **Diagnostics** says why. A Python Function is translated if it uses numbers,
+`if`/`elif`/`else`, arithmetic, `math`/`np` functions, `min`/`max`/`abs`, `np.clip` and `np.interp` with lists
+of numbers; loops and arrays keep the model in normal mode. In Python:
+
+```python
+d.settings.mode = "accelerated"
+res = simulate(d)
+print(res.stats.solver)  # "rk4 (accelerated, compiled C)"
+```
+
 ## Sample times
 
 Discrete blocks (Unit Delay, Zero-Order Hold, Discrete PID, ...) have a **sample_time** in seconds: they

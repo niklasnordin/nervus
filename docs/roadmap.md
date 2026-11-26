@@ -21,19 +21,23 @@ A2L export, Simulink `.slx` import, 33 tutorials. [Changelog](https://github.com
 - Simulink import of the older `.mdl` text format; coverage of the generated C code by the test cases; MC/DC for
   state chart guards; Help ▸ About Nervus with the contributors.
 
-## 0.3: real hardware
+## 0.3: real hardware (released; tests on real boards still open)
 
-- **A development-board target** (an STM32 or ESP32 with CAN): the generated code with a scheduler template and
-  hardware drivers, built and flashed from Nervus.
+- **Development-board targets** with CAN (an STM32 Nucleo and an ESP32 first): the generated code with a scheduler
+  template and a small hardware layer per board, built and flashed from Nervus. The model stays the same; only the
+  target changes. *Done:* [board projects](boards.md) with an XCP slave in C; *open:* tests on real boards.
 - **Processor-in-the-loop (PIL)**: the generated code runs on the board, the plant in Nervus, compared step by step
   with the simulation.
 - **Hardware-in-the-loop (HIL)**: the plant model in real time on the PC, talking CAN to a real ECU.
-- The XCP slave on the board, so the board can be measured and calibrated like a production ECU.
-- Simulink import of Stateflow charts as State Chart blocks.
-- **Faster simulation** for large models (compiled execution of the model).
+- The XCP slave on the board, so the board can be measured and calibrated like a production ECU (done for
+  polling; DAQ to follow).
+- Simulink import of Stateflow charts as State Chart blocks (needs sample models from MATLAB:
+  [help wanted](developer/help-wanted.md#stateflow-sample-models-needs-matlab)).
+- **Faster simulation** for large models: accelerated mode, the model as compiled C (done; physical networks
+  still run in Python).
 - What users report: bugs, missing blocks, unclear tutorials.
 
-## 0.4 to 0.6: measurement and calibration (the first INCA part)
+## 0.4 to 0.6: measurement and calibration (the first INCA part; most of it is in 0.3)
 
 - **A2L import of any ECU's description** (not only Nervus's own): measurements, characteristics (values, curves,
   maps with their axes), conversion methods, record layouts, memory segments.
@@ -44,6 +48,9 @@ A2L export, Simulink `.slx` import, 33 tutorials. [Changelog](https://github.com
 - **Calibration editors**: values, curves and maps as tables and 3-D surfaces, changed live in the ECU, with
   **working and reference pages** (switch between the calibration under test and the safe one in one click).
 - The same windows work against the model (simulation), the development board and a production ECU.
+- *Done in 0.3:* the [Calibration window](calibration.md) with A2L import of any ECU, the XCP master on CAN,
+  CAN FD, UDP and TCP with DAQ lists, seed and key, working and reference pages, value/curve/map editors,
+  recording to MDF4, and a virtual ECU. *Still open:* CCP, 3-D map views, bar and state displays, triggers.
 
 ## 0.7 and 0.8: data sets, flashing and diagnostics
 
@@ -81,12 +88,14 @@ Nervus 1.0 is released when:
 
 ## Decided along the way
 
-- **Inside Nervus or a separate application?** The measurement and calibration tool can be a workspace inside
-  Nervus or its own application that shares Nervus's A2L, XCP and CAN code. *Recommendation:* one application with a
-  **Calibration** workspace, because the same windows then work against the model, a board and the real ECU, and a
-  calibration found on the vehicle can go back into the model in one step. To be decided before 0.4.
-- **Which hardware?** CAN interfaces through python-can (PEAK, Kvaser, Vector, SocketCAN, and others); a first
-  development board for the tutorials.
+- **Inside Nervus or a separate application?** *Decided:* inside Nervus, as a **Calibration** workspace, because
+  the same windows then work against the model, a board and the real ECU, and a calibration found on the vehicle
+  can go back into the model in one step.
+- **Which hardware?** CAN interfaces through python-can (PEAK, Kvaser, Vector, SocketCAN, CANable and others).
+  *Decided:* not one development board but several, through a small hardware layer per board, so users can take the
+  board they have. What to buy: [Hardware](hardware.md).
+- **Signed applications?** Postponed: signing costs a yearly fee. The unsigned applications open with right-click ▸
+  Open (macOS) or *More info ▸ Run anyway* (Windows).
 
 ## Safety and the law
 

@@ -24,6 +24,12 @@ from nervus.gui.theme import Theme, ThemeManager, current_theme
 from nervus.sim import SimResult
 from nervus.testing import compare_results
 
+LOG_FILTER = "Vehicle logs (*.csv *.txt *.asc *.blf *.trc *.log);;All files (*)"
+LOAD_FILTER = (
+    "Results and logs (*.nervres *.mf4 *.mdf *.csv *.txt *.asc *.blf *.trc *.log);;Nervus results (*.nervres);;"
+    "MDF4 measurements (*.mf4 *.mdf);;" + LOG_FILTER
+)
+
 
 class DataInspector(QWidget):
     """Select runs and signals to overlay. With *Difference* on, every run is plotted relative to the first
@@ -48,7 +54,7 @@ class DataInspector(QWidget):
         export = QPushButton("Export CSV/MAT…")
         clear = QPushButton("Clear")
         for b, tip in (
-            (load, "Load a saved .nervres result"),
+            (load, "Load a saved result, an MDF4 measurement or a vehicle log (CSV, CAN log)"),
             (save, "Save the selected run as .nervres"),
             (export, "Export the selected run"),
         ):
@@ -142,8 +148,11 @@ class DataInspector(QWidget):
             names.update(run.result.names())
         self.signals.blockSignals(True)
         self.signals.clear()
+        units = {n: r.result.unit(n) for r in self.checked_runs() for n in r.result.names() if r.result.unit(n)}
         for name in sorted(names):
             item = QListWidgetItem(name)
+            if name in units:
+                item.setToolTip(units[name])
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
             item.setCheckState(Qt.CheckState.Checked if name in checked else Qt.CheckState.Unchecked)
             self.signals.addItem(item)
@@ -184,7 +193,7 @@ class DataInspector(QWidget):
         series = [(r, s) for s in signals for r in runs if s in r.result]
         diff = self.diff.isChecked() and len(runs) >= 2
         ref = runs[0].result if diff else None
-        shown = 0
+        shown, units = 0, set()
         for run, name in series:
             if shown >= len(t.series):
                 break
@@ -198,10 +207,13 @@ class DataInspector(QWidget):
                 yr = np.asarray(ref[name], dtype=float)
                 yr = yr[:, 0] if yr.ndim > 1 else yr
                 y = y - np.interp(res.t, ref.t, yr)
-            label = f"{run.label}: {name}" + (" − first" if ref is not None else "")
+            unit = res.unit(name)
+            units.add(unit)
+            label = f"{run.label}: {name}" + (f" [{unit}]" if unit else "") + (" − first" if ref is not None else "")
             self.plot.plot(res.t, y, pen=pg.mkPen(t.series[shown], width=2), name=label)
             shown += 1
         self.legend.setVisible(shown > 1)
+        self.plot.setLabel("left", units.pop() if len(units) == 1 else "")
         self.summary.setText(self._summary(runs, signals))
 
     def _summary(self, runs: list[Run], signals: list[str]) -> str:
@@ -220,21 +232,36 @@ class DataInspector(QWidget):
         return runs[-1] if runs else None
 
     def _load(self) -> None:
-        path, _ = QFileDialog.getOpenFileName(
-            self, "Load result", "", "Nervus results (*.nervres);;MDF4 measurements (*.mf4 *.mdf)"
-        )
+        path, _ = QFileDialog.getOpenFileName(self, "Load result or log", "", LOAD_FILTER)
         if path:
             self.load_file(path)
 
-    def load_file(self, path: str) -> bool:
-        """Add a saved result (.nervres) or a measurement file (MDF4, e.g. from INCA, CANape or a logger)."""
+    def open_log(self) -> None:
+        """Ask for a vehicle log (a scanner app's CSV or a CAN log) and add it."""
+        path, _ = QFileDialog.getOpenFileName(self, "Open vehicle log", "", LOG_FILTER)
+        if path:
+            self.load_file(path)
+
+    def load_file(self, path: str, dbc: str | None = None) -> bool:
+        """Add a saved result (.nervres), a measurement file (MDF4, e.g. from INCA, CANape or a logger) or a
+        vehicle log (CSV from an OBD-II scanner app, or a CAN log: for a CAN log Nervus asks for a DBC file, and
+        without one decodes its OBD-II answers)."""
+        from nervus import logs
+
         try:
-            if path.lower().endswith((".mf4", ".mdf")):
+            lower = path.lower()
+            if lower.endswith((".mf4", ".mdf")):
                 from nervus.mdf import read_mdf
 
                 result = read_mdf(path)
-            else:
+            elif lower.endswith(".nervres"):
                 result = SimResult.load(path)
+            else:
+                if dbc is None and logs.is_can_log(path):
+                    dbc, _ = QFileDialog.getOpenFileName(
+                        self, "DBC file to decode the CAN log (Cancel: OBD-II answers only)", "", "DBC (*.dbc)"
+                    )
+                result = logs.read_log(path, dbc=dbc or None)
         except Exception as exc:  # unreadable or foreign files: show why
             QMessageBox.warning(self, "Load result", f"Could not read {path}:\n{exc}")
             return False

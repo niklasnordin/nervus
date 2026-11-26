@@ -30,6 +30,7 @@ extra_javascript:
 nav:
   - Home: index.md
   - Roadmap to 1.0: roadmap.md
+  - Hardware: hardware.md
   - User guide:
       - Getting started: getting-started.md
       - The editor: editor.md
@@ -41,8 +42,10 @@ nav:
       - Physical modelling: physical.md
       - CAN communication: can.md
       - OBD-II live data: obd.md
+      - Measurement and calibration: calibration.md
       - Linear analysis: analysis.md
       - C code generation: codegen.md
+      - Development boards: boards.md
       - Test cases and results: testing.md
       - Coverage, requirements and Model Advisor: verification.md
       - In-app help pages:
@@ -58,8 +61,10 @@ nav:
           - Physical modelling: app-help/physical.md
           - CAN communication: app-help/can.md
           - OBD-II live data: app-help/obd.md
+          - Measurement and calibration: app-help/calibration.md
           - Linear analysis: app-help/analysis.md
           - C code generation: app-help/codegen.md
+          - Development boards: app-help/boards.md
           - Test cases and the Data Inspector: app-help/testing.md
           - Coverage and Model Advisor: app-help/verification.md
           - Tutorials (app):
@@ -180,3 +185,4 @@ nav:
   - Developer:
       - Architecture: developer/architecture.md
       - Writing a block: developer/custom-blocks.md
+      - Help wanted: developer/help-wanted.md

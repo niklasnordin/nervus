@@ -14,7 +14,7 @@ from nervus.core import (
 from nervus.io import load, save
 from nervus.sim import SimResult, compile_diagram, simulate
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "Block",

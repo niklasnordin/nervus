@@ -391,6 +391,14 @@ def _simulate_compiled(
     log.start_pacing(opts.pacing, opts.t_start)
     t0, tf = opts.t_start, opts.t_final
     zc_info: dict[str, Any] = {"count": 0, "warnings": []}
+    if opts.mode == "accelerated":
+        why = _accelerate_blocker(opts, coverage, live)
+        if why is None:
+            try:
+                return _run_accelerated(model, opts, t0, tf, log, wall0)
+            except (ModelError, OSError) as exc:  # no C for a block, no compiler, ...
+                why = str(exc)
+        zc_info["warnings"].append(f"accelerated mode not used: {why}")
     try:
         if opts.is_fixed_step:
             h, n_major, stopped = _run_fixed(model, opts, t0, tf, log, progress, should_stop)
@@ -416,6 +424,50 @@ def _simulate_compiled(
         zc_info["count"],
         [*zc_info["warnings"], *loop_notes] or None,
     )
+    return log.result(stats)
+
+
+def _accelerate_blocker(opts: SimulationSettings, coverage: Any, live: Any) -> str | None:
+    """Why a run cannot be accelerated in any case (None: try it)."""
+    if coverage is not None:
+        return "model coverage is collected in normal simulation only"
+    if opts.pacing:
+        return "pacing (real time) needs normal simulation"
+    return None
+
+
+def _run_accelerated(model: CompiledModel, opts: SimulationSettings, t0: float, tf: float, log: _Logger,
+                     wall0: float) -> SimResult:  # fmt: skip
+    """The whole model as compiled C (see :mod:`nervus.codegen.accelerator`)."""
+    from nervus.codegen.accelerator import AcceleratedModel, fundamental_step
+
+    if opts.is_fixed_step:
+        h, method = opts.step or default_fixed_step(model, t0, tf), opts.method
+    else:
+        span = tf - t0
+        h, method = fundamental_step(model, opts.max_step or (span / 1000 if span > 0 else 1.0)), "rk4"
+    acc = AcceleratedModel(model, h)
+    t, data = acc.run(t0, tf, h, method)
+    stopped = False
+    if model._monitors:  # Stop Simulation and Assertion blocks, on the logged signals
+        offsets = np.cumsum([0, *[w for ws in model.out_widths for w in ws]])
+        index = {(i, p): k for k, (i, p) in enumerate((i, p) for i, ws in enumerate(model.out_widths)
+                                                      for p in range(len(ws)))}  # fmt: skip
+        for k in range(len(t)):
+            for i, p in {sp for _i, _b, inputs in model._monitors for sp in inputs}:
+                j = index[(i, p)]
+                model.y[i][p] = data[k, offsets[j] : offsets[j + 1]]
+            if model.check_monitors(float(t[k])):
+                t, data, stopped = t[: k + 1], data[: k + 1], True
+                break
+    log.t = list(t)
+    offset = 0
+    for i, ws in enumerate(model.out_widths):
+        for p, w in enumerate(ws):
+            log.data[i][p] = [data[:, offset : offset + w]]
+            offset += w
+    note = "compiled C" if not acc.compiled else "compiled C, built for this run"
+    stats = SimStats(f"{method} (accelerated, {note})", h, len(t), len(t), time.perf_counter() - wall0, stopped)
     return log.result(stats)
 
 

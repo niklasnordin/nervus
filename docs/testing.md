@@ -147,7 +147,7 @@ Ready-made metrics are also available in Python: `metric("plate_angle", "max")` 
 **Simulation → Data Inspector** (⌘I) keeps the last 20 runs, both normal simulations and test results.
 Check runs and signals to overlay them. With two runs selected it shows the largest difference, and
 *Difference to first run* plots the deviation directly. *Save run…* writes a `.nervres` file (use it as a
-baseline), *Load…* reads one (or an MDF4 measurement), and *Export* writes CSV, MATLAB `.mat` or MDF4.
+baseline), *Load…* reads one (or an MDF4 measurement, or a [vehicle log](obd.md#logs-from-scanner-apps-and-can-loggers)), and *Export* writes CSV, MATLAB `.mat` or MDF4.
 
 ![The Data Inspector comparing the two calibrations of the throttle controller](images/data-inspector.png)
 
@@ -206,5 +206,5 @@ regression tests in CI. The Nervus repository does exactly that for the examples
 ### Signals from logged data
 
 `Signal.from_csv("drive_log.csv", "rpm")` reads a column of a CSV file (first column = time), for example
-data exported from a vehicle logger, to replay a real drive as a test input. Reading ASAM MDF4 logs directly
-is on the [roadmap](https://github.com/ikjbi/nervus/blob/main/plan.md).
+data exported from a vehicle logger, to replay a real drive as a test input. For scanner app logs and CAN logs
+use [`read_log`](obd.md#logs-from-scanner-apps-and-can-loggers), for MDF4 files `read_mdf` (above).

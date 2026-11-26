@@ -7,7 +7,8 @@ temperatures, air flow, throttle position, fuel trims and more.
 
 Use it to:
 
-- record a real drive and compare it with your model in the **Data Inspector**;
+- record a real drive and compare it with your model in the **Data Inspector**, or open a log you made with
+  a scanner app or a CAN logger ([below](#logs-from-scanner-apps-and-can-loggers));
 - replay the recording as the input of a **test case** (for example, real rpm and throttle into your idle
   controller);
 - check that your plant model behaves like your car.
@@ -39,6 +40,46 @@ adapter (its serial port), a **CAN interface** (python-can: SocketCAN, PEAK, Kva
 the car does not report are greyed out. Tick the PIDs, set a duration (or record until **Stop**) and an
 interval, and press **Record**. Each PID gets its own plot while it records. Afterwards, **Save…** writes a
 `.nervres` or `.csv` file and **Open in Data Inspector** adds the drive as a run, to compare with a simulation.
+
+## Logs from scanner apps and CAN loggers
+
+Already have a log? **Tools → Open Vehicle Log…** (or *Load…* in the Data Inspector) opens it as a run in the
+Data Inspector, next to your simulations. Nervus reads:
+
+| Log | From | How it looks |
+|---|---|---|
+| CSV, one column per value | Torque, OBD Fusion, OBDLink, FORScan, ScanMaster, Nervus's own export, most loggers | `Device Time,Engine RPM(rpm),Speed (OBD)(km/h)` |
+| CSV, one row per sample | Car Scanner | `"SECONDS";"PID";"VALUE";"UNITS"` |
+| CAN log with a DBC file | CAN loggers, CANalyzer, PCAN-View, SavvyCAN, candump; trucks (J1939) | `.asc`, `.blf`, `.trc`, `.log` |
+| CAN log without a DBC file | a CAN log of a scan tool talking to the car | the OBD-II answers (0x7E8 to 0x7EF) |
+
+For CSV files, Nervus finds the header (lines above it, such as the vehicle name, are skipped), the separator
+(`,`, `;` or tab), a decimal comma, and the unit in the column name (`Engine RPM(rpm)` or `Fuel rate [l/h]`
+becomes the value *Engine RPM* in rpm). The time column is the first one called *time*, *seconds*,
+*timestamp* and the like, in seconds (milliseconds if its name or unit says *ms*), or as dates and clock times,
+counted from the first line. Empty cells and `-` (a value that was not read that time) are filled in from the
+samples around them; text columns are left out.
+
+For a CAN log, Nervus asks for a **DBC file** and decodes every signal of every message in it. A truck's
+J1939 messages are matched by their parameter group, whichever controller sent them, so one J1939 DBC file
+fits any truck. Cancel the DBC question to decode only the OBD-II answers in the log, with the PIDs Nervus
+knows.
+
+Every value has its own time stamps (a scanner reads one PID after the other); Nervus puts them on the time
+stamps of the value with the most samples, linearly interpolated. The units are shown in the plot.
+
+![A scanner app's log (examples/data/obd_scanner_log.csv) in the Data Inspector](../images/vehicle-log.png)
+
+In Python:
+
+```python
+from nervus.logs import log_channels, read_log
+
+log_channels("examples/data/obd_scanner_log.csv")  # {'Engine RPM': 'rpm', 'Speed (OBD)': 'km/h', ...}
+rec = read_log("examples/data/obd_scanner_log.csv", ["Engine RPM"], raster=0.1)
+truck = read_log("truck.blf", dbc="j1939.dbc")
+FromWorkspace(time=rec.t, data=rec["Engine RPM"])  # drive a model with the recorded engine speed
+```
 
 ## Trouble codes, freeze frame and VIN
 

@@ -481,7 +481,10 @@ def _pt1(e: Emitter) -> BlockCode:
     def out(ix: str) -> list[str]:
         return [f"{e.y(0, ix)} = {s}[{ix}] + ({ts} / ({tau} + {ts})) * ({e.u(0, ix)} - {s}[{ix}]);"]
 
-    return BlockCode(e.each(e.w(), out), e.each(e.w(), lambda ix: [f"{s}[{ix}] = {e.y(0, ix)};"]))
+    def upd(ix: str) -> list[str]:  # the unrounded value (a fixed-point output is rounded, the state is not)
+        return [f"{s}[{ix}] = {s}[{ix}] + ({ts} / ({tau} + {ts})) * ({e.u(0, ix)} - {s}[{ix}]);"]
+
+    return BlockCode(e.each(e.w(), out), e.each(e.w(), upd))
 
 
 @template("discrete.moving_average")
@@ -534,7 +537,7 @@ def _discrete_pid(e: Emitter) -> BlockCode:
         "{",
         *[f"    {x}" for x in law + di],
         f"    {s}[0] += {ts} * di;",
-        f"    {s}[1] += {ts} * {kn} * (err - {s}[1]);",
+        f"    if ({kd} != 0.0) {{ {s}[1] += {ts} * {kn} * (err - {s}[1]); }} /* no D term: the filter stays still */",
         "}",
     ]
     return BlockCode(out, upd)

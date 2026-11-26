@@ -46,6 +46,41 @@ class SimResult:
     aliases: dict[str, str] = field(default_factory=dict)
     """Extra names (e.g. To Workspace variable names) mapped to signal keys."""
     stats: SimStats | None = None
+    units: dict[str, str] = field(default_factory=dict)
+    """Units of measured signals (from a measurement or log file), keyed like :attr:`signals`."""
+
+    @classmethod
+    def from_channels(cls, channels: dict[str, tuple[Array, Array]], raster: float | None = None,
+                      units: dict[str, str] | None = None) -> SimResult:  # fmt: skip
+        """Measured values, each with its own time stamps, on one time base: the time stamps of the value with
+        the most samples, or a fixed *raster* from the first to the last time stamp. The others are linearly
+        interpolated (and held before their first and after their last sample)."""
+        found = {}
+        for name, (ts, vs) in channels.items():
+            ts, vs = np.asarray(ts, dtype=float), np.asarray(vs, dtype=float)
+            if ts.size and np.any(np.diff(ts) < 0):  # out-of-order lines in a log
+                order = np.argsort(ts, kind="stable")
+                ts, vs = ts[order], vs[order]
+            if ts.size:
+                found[name] = (ts, vs)
+        if not found:
+            raise ValueError("no samples")
+        if raster:
+            lo = min(ts[0] for ts, _ in found.values())
+            hi = max(ts[-1] for ts, _ in found.values())
+            t = np.arange(lo, hi + raster / 2, raster)
+        else:
+            t = max((ts for ts, _ in found.values()), key=len)
+        signals = {f"{n}:0": np.interp(t, ts, v).reshape(-1, 1) for n, (ts, v) in found.items()}
+        unit_of = {f"{n}:0": u for n, u in (units or {}).items() if u and n in found}
+        return cls(t=t, signals=signals, units=unit_of)
+
+    def unit(self, name: str) -> str:
+        """The unit of a measured signal, or ''."""
+        try:
+            return self.units.get(self._key(name), "")
+        except KeyError:
+            return ""
 
     def _key(self, name: str) -> str:
         if name in self.signals:
@@ -129,6 +164,7 @@ class SimResult:
             "input_keys": self.input_keys,
             "aliases": self.aliases,
             "stats": self.stats.__dict__ if self.stats is not None else None,
+            "units": self.units,
         }
         arrays: dict[str, Any] = {f"s{k}": v for k, v in enumerate(self.signals.values())}
         arrays["t"] = self.t
@@ -148,7 +184,7 @@ class SimResult:
             signals = {key: data[f"s{k}"] for k, key in enumerate(meta["keys"])}
             t = data["t"]
         stats = SimStats(**meta["stats"]) if meta.get("stats") else None
-        return cls(t, signals, meta.get("input_keys", {}), meta.get("aliases", {}), stats)
+        return cls(t, signals, meta.get("input_keys", {}), meta.get("aliases", {}), stats, meta.get("units", {}))
 
     def to_mat(self, path: str | Path) -> None:
         """Save as a MATLAB ``.mat`` file: ``t`` plus one variable per signal (names made MATLAB-safe)."""

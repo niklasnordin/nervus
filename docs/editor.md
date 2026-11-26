@@ -157,6 +157,10 @@ Solver, step size and tolerances are under **Simulation → Simulation Settings�
 **Pacing** runs the simulation no faster than a multiple of real time (1 = real time), so live scopes of a
 fast model can be watched; leave it empty to run as fast as possible.
 
+**Simulation mode → Accelerated** runs the whole model as compiled C, 30 to 700 times faster for large models
+(it needs a C compiler). Models with blocks that have no C code (physical networks, FMUs, CAN) run normally, and
+Diagnostics says why. See [Concepts: accelerated simulation](concepts.md#accelerated-simulation).
+
 ## Scripting console
 
 **View ▸ Console** (a tab next to the Model Workspace) runs Python with the open model and its results in

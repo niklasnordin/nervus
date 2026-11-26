@@ -218,8 +218,9 @@ tests/
       time point, cheaper sources and integrators; `scripts/benchmark.py` times the examples
 - [x] Third performance pass: one network solve per time point (charging system 2x faster), scalar lookup tables
       (gear shift 40 % faster)
-- [ ] Performance: avoid per-step Python overhead (vectorised execution, Numba, or simulate the generated C:
-      "accelerator mode")
+- [x] Accelerated mode: the whole model as compiled C with a fixed-step loop in C (30-700x faster); continuous
+      blocks, time sources and Python Function blocks (translated) have C code
+- [ ] Accelerated mode for physical networks (their equations in C) and for vector Python Function blocks
 
 ## Phase 13 – Data types and fixed-point (required for ECU code)
 - [x] Integer types (int8/16/32, uint8/16/32), boolean, single
@@ -276,7 +277,10 @@ tests/
 - [x] CAN FD, multiplexed signals, value tables, DBC signals as workspace variables
 - [x] A2L file generation for calibration tools (measurements and characteristics), addresses from `nm`
 - [x] XCP-on-CAN basics for live measurement and calibration (`nervus.xcp`, XCP Slave block)
-- [ ] Target: a development board (e.g. STM32 or ESP32 with CAN), as a scheduler template and HAL stubs
+- [x] Target: development boards with CAN, as a scheduler template and a small hardware layer, so one model runs on
+      several boards (decided 2026-11-25: support more than one): STM32 Nucleo-G474RE and ESP32 projects with an
+      XCP-on-CAN slave in C, built and flashed from Nervus
+- [ ] Test the board projects on real boards; DAQ and calibration pages in the C XCP slave
 - [ ] Processor-in-the-loop (PIL) testing
 - [ ] Hardware-in-the-loop (HIL): run the plant model in real time against a real ECU
 
@@ -301,7 +305,8 @@ tests/
       package, README links for PyPI, a release workflow with trusted publishing (the first release needs the
       one-time PyPI setup in CONTRIBUTING.md)
 - [x] Standalone applications (PyInstaller) for macOS (.dmg), Windows and Linux (.zip), built for every release
-- [ ] Signed and notarised applications (an Apple developer account, a Windows code-signing certificate)
+- [ ] Signed and notarised applications (an Apple developer account, a Windows code-signing certificate);
+      postponed (2026-11-25): it costs money every year, and the unsigned apps open with right-click ▸ Open
 - [x] Release notes: each release gets a GitHub Release with its CHANGELOG section; docs on GitHub Pages
 - [x] Versioned docs with mike: `dev` from main, one site per minor release (the newest is `latest`)
 
@@ -352,6 +357,8 @@ tests/
       clearing (04) deliberately left out: it resets the emissions readiness monitors
 - [x] OBD over a CAN interface (`python-can`, ISO-TP / ISO 15765-4) without an ELM327
 - [x] Editor: Tools → Record from OBD-II… with live plots
+- [x] Vehicle logs: CSV files of OBD-II scanner apps (wide and long), CAN logs decoded with a DBC file (J1939 by
+      parameter group) or as OBD-II answers, in the Data Inspector (`nervus.logs`)
 - [x] OBD responder in models: a simulated ECU that answers OBD requests (to test diagnostic tools): ELM327
       on a pseudo-terminal, or CAN
 - [x] Diagnostic logic in models: DTC setting/debouncing, MIL lamp, readiness monitors (Diagnostic Monitor block, with C code)
@@ -360,19 +367,22 @@ tests/
 To look into later: what it takes to handle an ECU completely, as ETAS INCA (or Vector CANape) does, either inside
 Nervus or as a separate app that shares Nervus's XCP, A2L and CAN code. Nervus already has the pieces: an XCP slave
 and a command-line XCP tool, A2L export, MDF4 files, CAN with DBC files and OBD-II.
-- [ ] Decide: inside Nervus (a "Calibration" workspace) or a separate app sharing the libraries
-- [ ] A2L import of any ECU's description (not only Nervus's own), including maps, curves, axes and conversion
+- [x] Decide: inside Nervus (a "Calibration" workspace) or a separate app sharing the libraries. Decided
+      2026-11-25: **inside Nervus**, a Calibration workspace
+- [x] A2L import of any ECU's description (not only Nervus's own), including maps, curves, axes and conversion
       methods (COMPU_METHOD), record layouts and memory segments
-- [ ] XCP master over CAN, CAN FD and Ethernet (UDP/TCP), plus CCP for older ECUs; DAQ lists with
+- [x] XCP master over CAN, CAN FD and Ethernet (UDP/TCP); DAQ lists with
       time stamps, several rates, seed and key
-- [ ] Measurement windows: oscilloscope, numeric, bar and state displays; recording to MDF4; triggers
-- [ ] Calibration editors: values, curves and maps as tables and 3-D surfaces, with working and reference pages
+- [x] Measurement windows: oscilloscope and numeric display; recording to MDF4 (the Calibration window)
+- [ ] Bar and state displays; recording triggers; CCP for older ECUs; several DAQ event rates
+- [x] Calibration editors: values, curves and maps as tables (3-D surfaces still open), with working and reference pages
       (switch between them live)
 - [ ] Data sets: read and write HEX/S19 files and calibration files (DCM, CDF/CDFX); compare and merge two data sets;
       a history of changes
 - [ ] Flashing over UDS (ISO 14229) and the ECU's bootloader: program, verify, checksums
 - [ ] Diagnostics over UDS/KWP2000: read and clear trouble codes, read data by identifier, routines
 - [ ] Experiments saved as files (the windows, the variables, the layout), and scripting (Python)
+- [x] A virtual ECU (the generated code with an XCP slave on its memory) to try the tool without hardware
 - [ ] Existing open-source pieces to evaluate: pyxcp, asammdf, python-can, cantools, canmatrix, udsoncan, pya2l
 - [ ] Safety: write-protection, plausibility limits for calibration values, and only on a bench or a test vehicle
 

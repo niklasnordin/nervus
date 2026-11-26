@@ -5,6 +5,36 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-25
+
+Measurement and calibration of real ECUs, development boards, accelerated simulation.
+
+### Added
+- Development boards (**Code → Board Project…**, `nervus.codegen.boards`): the generated code as a project for an
+  STM32 Nucleo-G474RE (FDCAN, STM32Cube HAL) or an ESP32 (TWAI, ESP-IDF), with a main loop, a hardware layer, a
+  portable XCP-on-CAN slave in C and an A2L file with the board's CAN identifiers; built and flashed from Nervus,
+  the A2L addresses filled in from the built program. A host build tests a project without hardware. (Not yet
+  tested on a real board.)
+- Measurement and calibration (**Tools → Calibration…**), like INCA or CANape: connect over XCP on CAN, UDP or TCP
+  (or to a virtual ECU), measure with DAQ lists (or polling), record to MDF4 and the Data Inspector, edit values,
+  curves and maps with the limits of the A2L file, switch between the working and the reference page, seed and
+  key, and a log of every write.
+- A2L files of any ECU (`nervus.a2l`): measurements, VALUE/VAL_BLK/CURVE/MAP characteristics with their axes
+  (STD_AXIS, FIX_AXIS, COM_AXIS), conversion methods, record layouts, memory segments and the XCP connection.
+- XCP: DAQ lists with time stamps, seed and key, working and reference pages, CAN FD packet sizes, XCP on UDP and
+  TCP (`UdpTransport`, `TcpTransport`, `serve_udp`, `serve_can`).
+- Virtual ECU (`python -m nervus.vecu`, `nervus.vecu.VirtualEcu`): the generated C code running in real time with
+  an XCP slave on its real memory and an A2L file with real addresses.
+- Accelerated simulation (**Simulation Settings → Simulation mode**, or `settings.mode = "accelerated"`): the whole
+  model runs as compiled C, 30 to 700 times faster, with the same results as a fixed-step run. C code for the
+  continuous blocks (Integrator with limits, resets and external initial value; Transfer Fcn; State-Space;
+  Derivative; PID), the time sources, top-level In blocks driven by test signals, and Python Function blocks
+  (translated from a numeric subset of Python). Models that cannot be compiled run normally and say why.
+- Vehicle logs in the Data Inspector (**Tools → Open Vehicle Log…**): CSV files from OBD-II scanner apps (Torque,
+  Car Scanner, OBD Fusion, OBDLink, FORScan, ...) and loggers, with their units, and CAN logs (`.asc`, `.blf`,
+  `.trc`, candump `.log`) decoded with a DBC file (J1939 messages from any source address) or, without one, as
+  OBD-II answers. In Python: `nervus.logs.read_log`. Results keep the units of measured signals (also from MDF4).
+
 ### Changed
 - Faster simulation: a physical network is solved once per time point instead of twice (the charging system
   example runs in half the time), and 1-D and 2-D lookup tables with one input value skip numpy (the gear-shift
@@ -15,6 +45,12 @@ All notable changes to this project are documented here. The format follows
 - A more modern look in light and dark mode: flat panel tabs with an accent underline, slim scrollbars, tinted
   selections, new check boxes, radio buttons and drop-down arrows, rounded menus and tooltips, clear hover, pressed,
   disabled and keyboard-focus states.
+
+### Fixed
+- Generated C of a Discrete PID without a D term: its derivative filter ran anyway and, with N·T ≥ 2, became
+  NaN and drove the output to its lower limit; it now stays still, as in the simulation.
+- Generated C of a fixed-point Discrete Filter (PT1) stored the rounded output as its state; the simulation keeps
+  the unrounded value, and so does the C now (the two agreed only to one bit).
 
 ## [0.2.0] - 2026-11-25
 

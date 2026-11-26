@@ -37,6 +37,10 @@ class SimulationSettings:
     pacing: float = 0.0
     """Run no faster than ``pacing`` × real time (1 = real time, 0.5 = half speed), e.g. to watch live scopes or
     to run a plant against real hardware. 0: as fast as possible."""
+    mode: str = "normal"
+    """``"normal"``: blocks run in Python. ``"accelerated"``: the whole model runs as compiled C (needs a C
+    compiler; with a fixed-step solver, RK4 for variable-step solvers). Models that cannot be compiled run
+    normally, with a note in the run's warnings (see :mod:`nervus.codegen.accelerator`)."""
 
     @property
     def method(self) -> str:
@@ -61,6 +65,8 @@ class SimulationSettings:
             raise ValueError("tolerances must be > 0")
         if self.algebraic_loops not in ("error", "solve"):
             raise ValueError("algebraic_loops must be 'error' or 'solve'")
+        if self.mode not in ("normal", "accelerated"):
+            raise ValueError("mode must be 'normal' or 'accelerated'")
         if not (self.pacing >= 0 and math.isfinite(self.pacing)):
             raise ValueError("pacing must be >= 0 (0 = as fast as possible)")
 
@@ -70,6 +76,8 @@ class SimulationSettings:
             del d["pacing"]  # the default; keeps older model files unchanged
         if self.algebraic_loops == "error":
             del d["algebraic_loops"]
+        if self.mode == "normal":
+            del d["mode"]
         return d
 
     @classmethod

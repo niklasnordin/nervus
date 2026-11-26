@@ -128,7 +128,7 @@ Ready-made metrics are also available in Python: `metric("plate_angle", "max")` 
 **Simulation → Data Inspector** (⌘I / Ctrl+I) lists the recent runs, including test results. Check runs
 and signals to overlay them; with two runs it shows the largest difference, and *Difference to first run*
 plots the deviation. *Save run…* creates a baseline file for `baseline` checks; *Load…* also reads MDF4
-measurements (`.mf4`); *Export* writes CSV, `.mat` or MDF4.
+measurements (`.mf4`) and [vehicle logs](obd.md#logs-from-scanner-apps-and-can-loggers); *Export* writes CSV, `.mat` or MDF4.
 
 ### MDF4 measurement files
 

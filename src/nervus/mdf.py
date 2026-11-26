@@ -92,7 +92,7 @@ def read_mdf(path: str | Path, channels: Iterable[str] | None = None, raster: fl
     with asammdf.MDF(str(path)) as mdf:
         index = _channel_index(mdf)
         wanted = list(channels) if channels is not None else list(index)
-        found = {}
+        found, units = {}, {}
         for name in wanted:
             try:
                 if name in index:
@@ -110,13 +110,7 @@ def read_mdf(path: str | Path, channels: Iterable[str] | None = None, raster: fl
             if values.dtype.kind not in "biuf" or values.ndim != 1 or len(sig.timestamps) == 0:
                 continue  # text, byte arrays, structures
             found[name] = (np.asarray(sig.timestamps, dtype=float), values.astype(float))
+            units[name] = getattr(sig, "unit", "") or ""
     if not found:
         raise NervusError(f"{Path(path).name}: no numeric channels to read")
-    if raster:
-        lo = min(ts[0] for ts, _ in found.values())
-        hi = max(ts[-1] for ts, _ in found.values())
-        t = np.arange(lo, hi + raster / 2, raster)
-    else:
-        t = max((ts for ts, _ in found.values()), key=len)
-    signals = {f"{n}:0": np.interp(t, ts, v).reshape(-1, 1) for n, (ts, v) in found.items()}
-    return SimResult(t=t, signals=signals)
+    return SimResult.from_channels(found, raster, units)

@@ -380,6 +380,73 @@ def about_shots(win) -> None:  # type: ignore[no-untyped-def]
     dlg.close()
 
 
+def calibration_shots(win) -> None:  # type: ignore[no-untyped-def]
+    """The Calibration window, measuring and calibrating the virtual ECU of examples/throttle_ecu.nervus."""
+    import time
+
+    from nervus import load
+
+    win.diagram_model.set_diagram(load(ROOT / "examples" / "throttle_ecu.nervus"))
+    cal = win.show_calibration()
+    cal.resize(1300, 800)
+    cal._fill_subsystems()
+    cal.subsystem.setCurrentIndex(cal.subsystem.findData("ECU"))
+    cal.connect_ecu()
+    cal.watch(["ECU_B.tps_deg", "ECU_B.target_deg", "ECU_B.throttle_pi"])
+    cal.vecu.inputs = lambda t: {"target_deg": 30.0 if (t % 4) < 2 else 60.0, "tps_deg": 30.0 + 10 * ((t % 4) >= 2)}
+    end = time.monotonic() + 4.5
+    while time.monotonic() < end:
+        QApplication.processEvents()
+        time.sleep(0.02)
+    cal.show_characteristic("ECU_P.Kp")
+    cal.write_value("ECU_P.Kp", 0, 0, 2.0)
+    QApplication.processEvents()
+    grab(cal, "calibration.png")
+    shutil.copy(OUT / "calibration.png", ROOT / "src" / "nervus" / "gui" / "resources" / "figures" / "calibration.png")
+    cal.disconnect_ecu()
+    cal.close()
+
+
+def board_shots(win) -> None:  # type: ignore[no-untyped-def]
+    """Code > Board Project, after creating an STM32 project for the throttle ECU."""
+    from nervus import load
+
+    win.diagram_model.set_diagram(load(ROOT / "examples" / "throttle_ecu.nervus"))
+    dlg = win.show_board_project()
+    dlg.folder.setText(str(Path(tempfile.mkdtemp()) / "throttle_ecu_stm32"))
+    dlg.make_project()
+    dlg.output.setPlainText(dlg.output.toPlainText().replace(str(Path(dlg.folder.text()).parent), "~"))
+    dlg.folder.setText("~/throttle_ecu_stm32")
+    dlg.resize(720, 400)
+    QApplication.processEvents()
+    grab(dlg, "board-project.png")
+    shutil.copy(
+        OUT / "board-project.png", ROOT / "src" / "nervus" / "gui" / "resources" / "figures" / "board-project.png"
+    )
+    dlg.close()
+
+
+def settings_shots(win) -> None:  # type: ignore[no-untyped-def]
+    """The Simulation Settings dialog, with the simulation mode."""
+    from nervus.gui.views.settings_dialog import SettingsDialog
+
+    dlg = SettingsDialog(win.diagram_model.diagram.settings, win)
+    dlg.show()
+    grab(dlg, "settings.png")
+    dlg.close()
+
+
+def log_shots(win) -> None:  # type: ignore[no-untyped-def]
+    """A scanner app's CSV log (examples/data/obd_scanner_log.csv) in the Data Inspector."""
+    inspector = win.show_inspector()
+    inspector.resize(1100, 560)
+    inspector.load_file(str(Path(__file__).parent.parent / "examples" / "data" / "obd_scanner_log.csv"))
+    inspector.select(["obd_scanner_log.csv"], ["Engine RPM"])
+    grab(inspector, "vehicle-log.png")
+    inspector.close()
+    shutil.copy(OUT / "vehicle-log.png", ROOT / "src" / "nervus" / "gui" / "resources" / "figures" / "vehicle-log.png")
+
+
 def grab(widget: QWidget, name: str) -> None:
     QApplication.processEvents()
     widget.grab().save(str(OUT / name))
@@ -402,6 +469,10 @@ def main() -> None:
         ["chart"],
         ["signals"],
         ["about"],
+        ["log"],
+        ["settings"],
+        ["calibration"],
+        ["board"],
     ):  # only the newest shots
         from nervus.gui.views.main_window import MainWindow
 
@@ -411,7 +482,9 @@ def main() -> None:
         win.show()
         shots = {"console": console_and_can_shots, "dictionary": dictionary_shots, "first": first_model_shots,
                  "requirements": requirements_shots, "chart": chart_shots,
-                 "signals": signal_shots, "about": about_shots}  # fmt: skip
+                 "signals": signal_shots, "about": about_shots, "log": log_shots,
+                 "settings": settings_shots, "calibration": calibration_shots,
+                 "board": board_shots}  # fmt: skip
         shots[sys.argv[1]](win)
         win.editor.undo_stack.setClean()
         win.close()
