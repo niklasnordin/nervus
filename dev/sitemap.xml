@@ -2,546 +2,570 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/analysis/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://ikjbi.github.io/nervus/dev/boards/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://ikjbi.github.io/nervus/dev/calibration/</loc>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/can/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/codegen/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/coming-from-simulink/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/concepts/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/datatypes/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/editor/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/getting-started/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://ikjbi.github.io/nervus/dev/hardware/</loc>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/libraries/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/model-files/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/obd/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/physical/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/roadmap/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/statecharts/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/subsystems/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/testing/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/verification/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/workspace/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/analysis/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://ikjbi.github.io/nervus/dev/app-help/boards/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://ikjbi.github.io/nervus/dev/app-help/calibration/</loc>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/can/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/codegen/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/coming_from_simulink/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/concepts/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/datatypes/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/editor/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/getting_started/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/libraries/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/model_files/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/obd/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/physical/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/shortcuts/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/simulation/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/statecharts/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/subsystems/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/testing/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_abs/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_can_network/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_charging_system/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_circuits/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_component_libraries/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_coolant_fan/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_coupled_tanks/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_dc_motor/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_discrete_control/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_drive_cycle/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_engine_modes/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_ev_range/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_first_model/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_fixed_point/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_fmi/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_fuel_film/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_gear_shift/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_idle/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_ignition/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_injector_driver/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_inverted_pendulum/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_lambda/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_mass_spring_damper/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_model_to_code/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_ntc_sensor/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_obd_diagnostics/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_physical/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_python_scripting/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_rc_rlc/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_requirements_testing/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_robustness_monte_carlo/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_sensor_diagnostics/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_traction/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_truck/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorial_xcp_calibration/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/tutorials/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/verification/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/app-help/workspace/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/automotive-electrics/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/can/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/continuous/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/control/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/diagnostics/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/discontinuities/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/discrete/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/electrical/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/hydraulic/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/logic-and-bit-operations/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/lookup-tables/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/math-operations/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/ports-subsystems/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/rotational/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/semiconductors/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/sensors-actuators/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/signal-attributes/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/signal-routing/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/sinks/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/sources/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/state-machines/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/thermal/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/blocks/user-defined/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/developer/architecture/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/developer/custom-blocks/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://ikjbi.github.io/nervus/dev/developer/help-wanted/</loc>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/abs/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/can-network/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/charging-system/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/circuits/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/component-libraries/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/coolant-fan/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/coupled-tanks/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/dc-motor/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/discrete-control/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/drive-cycle/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/engine-modes/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/ev-range/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/first-model/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/fixed-point/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/fmi/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/fuel-film/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/gear-shift/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/idle-speed-control/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/ignition-knock/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/injector-driver/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/inverted-pendulum/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/lambda-control/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/mass-spring-damper/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/model-to-code/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/ntc-sensor/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/obd-diagnostics/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/physical-models/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/python-scripting/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/rc-rlc/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/requirements-testing/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/robustness-monte-carlo/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/sensor-diagnostics/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/traction-control/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/truck/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://ikjbi.github.io/nervus/dev/tutorials/xcp-calibration/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
 </urlset>
